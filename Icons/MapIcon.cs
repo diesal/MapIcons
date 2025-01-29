@@ -27,7 +27,6 @@ public abstract class MapIcon {
     public string RenderName => Entity.RenderName;
     public string Text { get; protected set; }
 
-
     public MapIcon(Entity entity) {
         Entity = entity;
         if (Entity == null) return;
