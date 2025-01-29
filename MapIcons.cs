@@ -30,7 +30,6 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
 
     private bool _showIconPicker = false;
     private string _selectedIconButton = "";
-
     //--| Initialise |--------------------------------------------------------------------------------------------------
     public override bool Initialise() {
         CanUseMultiThreading = true;
