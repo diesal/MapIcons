@@ -36,37 +36,36 @@ public sealed class MapIconsSettings : ISettings {
     public int CheckpointState = 1;
     public int QuestObjectState = 1;
     public int NPCState = 1;
-    public int NPCHideoutState = 0;
     public int RitualState = 2;
-    public int ShrineState = 1;
-    public bool ShrineTextShow = false;
+    public int ShrineState = 2;
+    public bool ShrineTextShow = true;
     public int WaypointState = 1;
     public int UncategorizedState = 1;
 
     //NPC icons
     public bool NormalMonsterDraw = true;
     public int NormalMonsterSize = 32;
-    public int NormalMonsterIconIndex = 1;
+    public int NormalMonsterIconIndex = 0;
     public Vector4 NormalMonsterTint = new(1.0f, 0.0f, 0.0f, 1.0f);
-    public Vector4 NormalMonsterHiddenTint = new(1.0f, 0.6862745f, 0.6862745f, 1.0f);
+    public Vector4 NormalMonsterHiddenTint = new(1.0f, 0.7254902f, 0.7254902f, 1.0f);
 
     public bool MagicMonsterDraw = true;
     public int MagicMonsterSize = 32;
     public int MagicMonsterIconIndex = 1;
     public Vector4 MagicMonsterTint = new(0.0f, 0.57254905f, 1.0f, 1.0f);
-    public Vector4 MagicMonsterHiddenTint = new(0.7647059f, 0.8975778f, 1.0f, 1.0f);
+    public Vector4 MagicMonsterHiddenTint = new(0.7254902f, 0.88050747f, 1.0f, 1.0f);
 
     public bool RareMonsterDraw = true;
     public int RareMonsterSize = 32;
     public int RareMonsterIconIndex = 2;
     public Vector4 RareMonsterTint = new(1.0f, 0.8235294f, 0.0f, 1.0f);
-    public Vector4 RareMonsterHiddenTint = new(1.0f, 0.97231835f, 0.84313726f, 1.0f);
+    public Vector4 RareMonsterHiddenTint = new(1.0f, 0.9515571f, 0.7254902f, 1.0f);
 
     public bool UniqueMonsterDraw = true;
     public int UniqueMonsterSize = 32;
     public int UniqueMonsterIconIndex = 3;
     public Vector4 UniqueMonsterTint = new(1.0f, 0.44155842f, 0.0f, 1.0f);
-    public Vector4 UniqueMonsterHiddenTint = new(1.0f, 0.84821224f, 0.7254902f, 1.0f);
+    public Vector4 UniqueMonsterHiddenTint = new(1.0f, 0.82652825f, 0.6862745f, 1.0f);
 
     public bool SpiritDraw = true;
     public int SpiritSize = 32;
@@ -93,10 +92,16 @@ public sealed class MapIconsSettings : ISettings {
     public Vector4 NPCHiddenTint = new Vector4(0.6862745f, 1.0f, 0.6862745f, 1.0f);
     public bool NPCTextShow = false;
 
+    public bool VolatileDraw = true;
+    public int VolatileSize = 32;
+    public int VolatileIconIndex = 18;
+    public Vector4 VolatileTint = new Vector4(1.0f, 0.0f, 0.38961077f, 1.0f);
+    public Vector4 VolatileHiddenTint = new Vector4(1.0f, 0.6862745f, 0.8043829f, 1.0f);
+
     // misc icons
     public bool PlayerDraw = true;
     public int PlayerSize = 32;
-    public int PlayerIconIndex = 0;
+    public int PlayerIconIndex = 17;
     public Vector4 PlayerTint = new(0.0f, 1.0f, 0.0f, 1.0f);
     public Vector4 PlayerHiddenTint = new( 0.6862745f, 1.0f, 0.6862745f, 1.0f );
     public bool PlayerTextShow = false;

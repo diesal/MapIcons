@@ -98,7 +98,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Normal", ref Settings.NormalMonsterHiddenTint); ImGui.SameLine();
         IconButton("Normal Monster Icon", "Icon", ref Settings.NormalMonsterIconIndex, Settings.NormalMonsterTint); ImGui.SameLine();
         IconSizeSliderInt("##NormalMonsters", ref Settings.NormalMonsterSize, 0, 32); ImGui.SameLine();
-        ImGui.Text("Normal Monsters");
+        ImGui.Text("Normal Monster");
 
         // magic monsters
         ImGuiUtils.Checkbox("##MagicMonsters", "Draw Magic Monsters", ref Settings.MagicMonsterDraw); ImGui.SameLine();
@@ -106,7 +106,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Magic", ref Settings.MagicMonsterHiddenTint); ImGui.SameLine();
         IconButton("Magic Monster Icon", "Icon", ref Settings.MagicMonsterIconIndex, Settings.MagicMonsterTint); ImGui.SameLine();
         IconSizeSliderInt("##MagicMonsters", ref Settings.MagicMonsterSize, 0, 32); ImGui.SameLine();
-        ImGui.Text("Magic Monsters");
+        ImGui.Text("Magic Monster");
 
         // rare monsters
         ImGuiUtils.Checkbox("##RareMonsters", "Draw Rare Monsters", ref Settings.RareMonsterDraw); ImGui.SameLine();
@@ -114,7 +114,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Rare", ref Settings.RareMonsterHiddenTint); ImGui.SameLine();
         IconButton("Rare Monster Icon", "Icon", ref Settings.RareMonsterIconIndex, Settings.RareMonsterTint); ImGui.SameLine();
         IconSizeSliderInt("##RareMonsters", ref Settings.RareMonsterSize, 0, 32); ImGui.SameLine();
-        ImGui.Text("Rare Monsters");
+        ImGui.Text("Rare Monster");
 
         // unique monsters
         ImGuiUtils.Checkbox("##UniqueMonsters", "Draw Unique Monsters", ref Settings.UniqueMonsterDraw); ImGui.SameLine();
@@ -122,7 +122,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Unique", ref Settings.UniqueMonsterHiddenTint); ImGui.SameLine();
         IconButton("Unique Monster Icon", "Icon", ref Settings.UniqueMonsterIconIndex, Settings.UniqueMonsterTint); ImGui.SameLine();
         IconSizeSliderInt("##UniqueMonsters", ref Settings.UniqueMonsterSize, 0, 32); ImGui.SameLine();
-        ImGui.Text("Unique Monsters");
+        ImGui.Text("Unique Monster");
 
         // spirits
         ImGuiUtils.Checkbox("##Spirits", "Draw Spirits", ref Settings.SpiritDraw); ImGui.SameLine();
@@ -130,7 +130,15 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Spirits", ref Settings.SpiritHiddenTint); ImGui.SameLine();
         IconButton("Spirit Icon", "Icon", ref Settings.SpiritIconIndex, Settings.SpiritTint); ImGui.SameLine();
         IconSizeSliderInt("##Spirits", ref Settings.SpiritSize, 0, 32); ImGui.SameLine();
-        ImGui.Text("Spirits");
+        ImGui.Text("Spirit");
+
+        // volatile cores
+        ImGuiUtils.Checkbox("##VolatileCores", "Draw Volatile Cores", ref Settings.VolatileDraw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##VolatileCores", ref Settings.VolatileTint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##VolatileCores", ref Settings.VolatileHiddenTint); ImGui.SameLine();
+        IconButton("Volatile Core Icon", "Icon", ref Settings.VolatileIconIndex, Settings.VolatileTint); ImGui.SameLine();
+        IconSizeSliderInt("##VolatileCores", ref Settings.VolatileSize, 0, 32); ImGui.SameLine();
+        ImGui.Text("Volatile Core");
 
         // fracturing mirrors
         ImGuiUtils.Checkbox("##FracturingMirrors", "Draw Fracturing Mirrors", ref Settings.FracturingMirrorDraw); ImGui.SameLine();
@@ -138,7 +146,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##FracturingMirrors", ref Settings.FracturingMirrorHiddenTint); ImGui.SameLine();
         IconButton("Fracturing Mirror Icon", "Icon", ref Settings.FracturingMirrorIconIndex, Settings.FracturingMirrorTint); ImGui.SameLine();
         IconSizeSliderInt("##FracturingMirrors", ref Settings.FracturingMirrorSize, 0, 32); ImGui.SameLine();
-        ImGui.Text("Fracturing Mirrors");
+        ImGui.Text("Fracturing Mirror");
 
         // minions
         ImGuiUtils.Checkbox("##Minions", "Draw Minions", ref Settings.MinionDraw); ImGui.SameLine();
@@ -146,7 +154,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Minions", ref Settings.MinionHiddenTint); ImGui.SameLine();
         IconButton("Minion Icon", "Icon", ref Settings.MinionIconIndex, Settings.MinionTint); ImGui.SameLine();
         IconSizeSliderInt("##Minions", ref Settings.MinionSize, 0, 32); ImGui.SameLine();
-        ImGui.Text("Minions");
+        ImGui.Text("Minion");
 
         // NPCs
         ImGuiUtils.Checkbox("##NPCs", "Draw NPCs", ref Settings.NPCDraw); ImGui.SameLine();
@@ -155,7 +163,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         IconButton("NPC Icon", "Icon", ref Settings.NPCIconIndex, Settings.NPCTint); ImGui.SameLine();
         IconSizeSliderInt("##NPCs", ref Settings.NPCSize, 0, 32); ImGui.SameLine();
         ImGuiUtils.Checkbox("##NPCText", "Draw NPC Name", ref Settings.NPCTextShow); ImGui.SameLine();
-        ImGui.Text("NPCs");
+        ImGui.Text("NPC");
 
     }
     private void DrawMiscIconSettings() {
@@ -340,9 +348,6 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         IngameIconComboBox("##NPC", ref Settings.NPCState); ImGui.SameLine();
         ImGui.Text("NPC");
 
-        IngameIconComboBox("##Essence", ref Settings.NPCHideoutState); ImGui.SameLine();
-        ImGui.Text("Hideout NPC");
-
         IngameIconComboBox("##Ritual", ref Settings.RitualState); ImGui.SameLine();
         ImGui.Text("Ritual");
 
@@ -469,6 +474,11 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
                     iconSize = Settings.SpiritSize;
                     iconUV = _iconAtlas.GetIconUV(Settings.SpiritIconIndex);
                     iconColor = ImGuiUtils.Vector4ToColor(Settings.SpiritTint);
+                    break;
+                case NPCTypes.VolatileCore:
+                    iconSize = Settings.VolatileSize;
+                    iconUV = _iconAtlas.GetIconUV(Settings.VolatileIconIndex);
+                    iconColor = ImGuiUtils.Vector4ToColor(Settings.VolatileTint);
                     break;
                 case NPCTypes.Minion:
                     iconSize = Settings.MinionSize;
@@ -730,11 +740,6 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
                     break;
                 case IngameIconTypes.NPC:
                     if (Settings.NPCState == 0 || (Settings.NPCState == 1 && ingame_icon.Entity.IsValid)) return false;
-                    iconSize = (int)ingame_icon.InGameTexture.Size;
-                    iconUV = ingame_icon.InGameTexture.UV;
-                    break;
-                case IngameIconTypes.NPCHideout:
-                    if (Settings.NPCHideoutState == 0 || (Settings.NPCHideoutState == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;

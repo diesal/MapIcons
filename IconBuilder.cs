@@ -26,12 +26,14 @@ public sealed class IconBuilder
         EntityType.Daemon,
         EntityType.Error,
     ];
+    private static string[] SkippedEntityPaths =>
+    [
+        "Metadata/NPC/Hideout",
+    ];
 
     private List<string> IgnoredEntities { get; set; }
     private int RunCounter { get; set; }
     private int IconVersion;
-
-
 
     public void Initialise() {
         UpdateIgnoredEntities();
@@ -51,7 +53,7 @@ public sealed class IconBuilder
 
     private MapIcon CreateIcon(Entity entity) {
         if (SkipIcon(entity)) return null;
-
+        if (SkipPath(entity)) return null;
         //var metadata = entity.Metadata;
         //if (Settings.CustomIcons.Content
         //        .FirstOrDefault(x => _regexes.GetValue(x.MetadataRegex.Value, p => new Regex(p))!.IsMatch(metadata)) is { } customIconConfig) {
@@ -110,6 +112,9 @@ public sealed class IconBuilder
     }
 
 
+    private bool SkipPath(Entity entity) {
+        return SkippedEntityPaths.Any(path => entity.Path?.StartsWith(path) == true);
+    }
     private bool SkipIcon(Entity entity) {
         if (entity is not { IsValid: true }) return true;
         if (SkippedEntityTypes.Any(x => x == entity.Type)) return true;

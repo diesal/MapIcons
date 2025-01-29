@@ -22,7 +22,6 @@ public enum IngameIconTypes
     Shrine,
     Waypoint,
     NPC,
-    NPCHideout
 }
 public class Ingame_MapIcon : MapIcon
 {
@@ -67,12 +66,8 @@ public class Ingame_MapIcon : MapIcon
             IngameIconType = IngameIconTypes.Shrine;
             Text = RenderName;
         }
-        else if (entity.Type == EntityType.Npc) {
-            if (entity.Path.StartsWith("Metadata/NPC/Hideout/"))
-                IngameIconType = IngameIconTypes.NPCHideout;
-            else                
-                IngameIconType = IngameIconTypes.NPC;
-        }
+        else if (entity.Type == EntityType.Npc)                           
+            IngameIconType = IngameIconTypes.NPC;
         else if (NameDictionary.TryGetValue(name, out var iconTypeByName))
             IngameIconType = iconTypeByName;        
         else {

@@ -16,7 +16,8 @@ public enum NPCTypes
     Minion,
     FracturingMirror,
     Spirit,
-    NPC
+    NPC,
+    VolatileCore
 }
 
 public class NPC_MapIcon : MapIcon
@@ -50,6 +51,12 @@ public class NPC_MapIcon : MapIcon
                 Show = () => false;
                 return;
             }
+        }
+        //Volatile Core
+        else if (entity.Path.Contains("Metadata/Monsters/LeagueDelirium/Volatile"))
+        {
+            Priority = IconPriority.Medium;
+            NPCType = NPCTypes.VolatileCore;
         }
         // Minion
         else if (!entity.IsHostile) {
