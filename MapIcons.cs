@@ -801,15 +801,13 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         var playerPos = playerRender.Pos.WorldToGrid();
         var playerHeight = -playerRender.UnclampedHeight;
 
-        var overlayIcons = _iconListCache.Value;
-        if (overlayIcons == null) return;
+        var mapIcons = _iconListCache.Value;
+        if (mapIcons == null) return;
 
-        foreach (var icon in overlayIcons) {
+        foreach (var icon in mapIcons) {
 
             if (icon?.Entity == null) continue;
             if (!icon.Show()) continue;
-
-            //if (icon.HasIngameIcon) continue; // TODO
 
             if (!GetIconProperties(icon, out var iconFileName, out var iconSize, out var iconColor, out var iconUV, out var showText)) continue;
             var iconGridPos = icon.GridPosition();
