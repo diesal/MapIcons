@@ -37,6 +37,7 @@ public enum IconTypes
     Shrine,
     IngameNPC,
     NPC,
+    LocalPlayer,
     Player,
     QuestObject,
     Ritual,
@@ -613,18 +614,36 @@ public class MapIcon
 
         // Player
         if (Entity.Type == EntityType.Player) {
-            IconRenderType = IconRenderTypes.Player;
-            IconType = IconTypes.Player;
-            if (!Entity.IsValid ) {
-                DebugMiscIcon("invalid");
-                return false;
-            }
             Text = Entity.GetComponent<Player>().PlayerName;
-            Setting_Draw = () => Settings.Player_Draw;
-            Setting_DrawText = () => Settings.Player_DrawText;
-            Setting_Size = () => Settings.Player_Size;
-            Setting_Index = () => Settings.Player_Index;
-            Setting_Color = () => Settings.Player_Tint;
+            // Local Player
+            if (plugin.GameController.IngameState.Data.LocalPlayer.Address == Entity.Address) {
+                //if (plugin.GameController.IngameState.Data.LocalPlayer.GetComponent<Player>().PlayerName == entity.GetComponent<Player>().PlayerName) return; 
+                IconRenderType = IconRenderTypes.Player;
+                IconType = IconTypes.LocalPlayer;
+                if (!Entity.IsValid) {
+                    DebugMiscIcon("invalid");
+                    return false;
+                }
+                Setting_Draw = () => Settings.LocalPlayer_Draw;
+                Setting_DrawText = () => Settings.LocalPlayer_DrawText;
+                Setting_Size = () => Settings.LocalPlayer_Size;
+                Setting_Index = () => Settings.LocalPlayer_Index;
+                Setting_Color = () => Settings.LocalPlayer_Tint;
+            }
+            // Player
+            else {
+                IconRenderType = IconRenderTypes.Player;
+                IconType = IconTypes.Player;
+                if (!Entity.IsValid) {
+                    DebugMiscIcon("invalid");
+                    return false;
+                }
+                Setting_Draw = () => Settings.Player_Draw;
+                Setting_DrawText = () => Settings.Player_DrawText;
+                Setting_Size = () => Settings.Player_Size;
+                Setting_Index = () => Settings.Player_Index;
+                Setting_Color = () => Settings.Player_Tint;
+            }
         }
         else if (Entity.Path.StartsWith("Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote")) {
             IconRenderType = IconRenderTypes.Chest;
@@ -643,6 +662,7 @@ public class MapIcon
         DebugMiscIcon();
         return true;
     }
+   
     private void DebugCustomIcon() {
         if (!Settings.Debug) return;
         Log.Write($"--| Custom Icon | Entity.Type: {Entity.Type} | Entity.Rarity: {Entity.Rarity} | RenderName: {Entity.RenderName} | Path: {Entity.Path} ");
@@ -650,8 +670,6 @@ public class MapIcon
 
     public MapIcon(Entity entity, MapIconsSettings settings, MapIcons plugin) {
         if (entity == null) return;
-        if (plugin.GameController.IngameState.Data.LocalPlayer.Address == entity.Address) return; // skip local player
-        //if (plugin.GameController.IngameState.Data.LocalPlayer.GetComponent<Player>().PlayerName == entity.GetComponent<Player>().PlayerName) return; 
 
         // Initialise MapIcon
         Settings = settings;

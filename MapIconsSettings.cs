@@ -170,6 +170,13 @@ public sealed class MapIconsSettings : ISettings {
     #endregion
 
     // misc icons
+    public bool LocalPlayer_Draw = false;
+    public bool LocalPlayer_DrawText = false;
+    public int LocalPlayer_Size = 32;
+    public int LocalPlayer_Index = 17;
+    public Vector4 LocalPlayer_Tint = new(0.0f, 1.0f, 0.0f, 1.0f);
+    public Vector4 LocalPlayer_HiddenTint = new(0.6862745f, 1.0f, 0.6862745f, 1.0f);
+
     public bool Player_Draw = true;
     public int Player_Size = 32;
     public int Player_Index = 17;

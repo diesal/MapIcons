@@ -213,6 +213,14 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
     }
     private void DrawMiscIconSettings() {
 
+        ImGuiUtils.Checkbox("##Players", "Draw Local Player", ref Settings.LocalPlayer_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Players", ref Settings.LocalPlayer_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Players", ref Settings.NPC_HiddenTint); ImGui.SameLine();
+        IconButton("Local Player Icon", "Icon", ref Settings.LocalPlayer_Index, Settings.LocalPlayer_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##Players", ref Settings.LocalPlayer_Size, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##PlayerText", "Draw Local Player Name", ref Settings.LocalPlayer_DrawText); ImGui.SameLine();
+        ImGui.Text("Local Player");
+
         ImGuiUtils.Checkbox("##Players", "Draw Players", ref Settings.Player_Draw); ImGui.SameLine();
         ImGuiUtils.ColorSwatch("Icon Tint ##Players", ref Settings.Player_Tint); ImGui.SameLine();
         ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Players", ref Settings.NPC_HiddenTint); ImGui.SameLine();
