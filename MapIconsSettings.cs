@@ -3,6 +3,17 @@ using ExileCore2.Shared.Nodes;
 using System.Numerics;
 
 namespace MapIcons;
+
+public class CustomIconSettings
+{
+    public string Path;
+    public bool Setting_Draw;
+    public bool Setting_DrawText;
+    public int Setting_Size;
+    public int Setting_Index;
+    public Vector4 Setting_Tint;
+    public Vector4 Setting_HiddenTint;
+}
 public sealed class MapIconsSettings : ISettings {
     public ToggleNode Enable { get; set; } = new(true);
 
@@ -16,7 +27,8 @@ public sealed class MapIconsSettings : ISettings {
 
     public int IgnoredEntitiesHeight = 100;
     public bool DrawSetingsOpen = true;
-    public bool IgnoderEntitesOpen = false;
+    public bool IgnoredEntitesOpen = false;
+    public bool CustomIconsOpen = true;
     public bool NPCIconsOpen = true;
     public bool MiscIconsOpen = true;
     public bool ChestIconsOpen = true;
@@ -25,212 +37,320 @@ public sealed class MapIconsSettings : ISettings {
 
     //debug
     public bool Debug = false;
-    public bool DebugChests = false;
-    public bool DebugNPC = false;
-    public bool DebugIngameIcons = false;
-    public bool DebugMiscIcons = false;
+    public bool DebugUnhandled = false;
+    public int DebugIngameIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
+    public int DebugChestIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
+    public int DebugNPCIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
+    public int DebugMiscIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
 
     //ingame icons
-    public int AreaTransitionState = 1;
-    public int BreachState = 2;
-    public int CheckpointState = 1;
-    public int QuestObjectState = 1;
-    public int NPCState = 1;
-    public int RitualState = 2;
-    public int ShrineState = 2;
-    public bool ShrineTextShow = true;
-    public int WaypointState = 1;
-    public int UncategorizedState = 1;
+    public int AreaTransition_State = 1;
+    public bool AreaTransition_DrawText = false;
+    public int Breach_State = 2;
+    public bool Breach_DrawText = false;
+    public int Checkpoint_State = 1;
+    public bool Checkpoint_DrawText = false;
+    public int QuestObject_State = 1;
+    public bool QuestObject_DrawText = false;
+    public int IngameNPC_State = 1;
+    public bool IngameNPC_DrawText = false;
+    public int Ritual_State = 2;
+    public bool Ritual_DrawText = false;
+    public int Shrine_State = 2;
+    public bool Shrine_DrawText = true;
+    public int Waypoint_State = 1;
+    public bool Waypoint_DrawText = false;
+    public int IngameUncategorized_State = 1;
+    public bool IngameUncategorized_DrawText = false;
 
-    //NPC icons
-    public bool NormalMonsterDraw = true;
-    public int NormalMonsterSize = 32;
-    public int NormalMonsterIconIndex = 0;
-    public Vector4 NormalMonsterTint = new(1.0f, 0.0f, 0.0f, 1.0f);
-    public Vector4 NormalMonsterHiddenTint = new(1.0f, 0.7254902f, 0.7254902f, 1.0f);
+    #region--| Custom Icons |-----------------------------------------------------------------------
+               
+        public List<CustomIconSettings> CustomIconSettingsList { get; set; } = new List<CustomIconSettings> { };
 
-    public bool MagicMonsterDraw = true;
-    public int MagicMonsterSize = 32;
-    public int MagicMonsterIconIndex = 1;
-    public Vector4 MagicMonsterTint = new(0.0f, 0.57254905f, 1.0f, 1.0f);
-    public Vector4 MagicMonsterHiddenTint = new(0.7254902f, 0.88050747f, 1.0f, 1.0f);
+        public void InitCustomIconSettings() {
+            if (true) return;
+            if (CustomIconSettingsList.Count > 0) return;
+            var Default_CustomIconSettingsList = new List<CustomIconSettings>{
+                new CustomIconSettings {
+                    Path = "Metadata/Custom/CustomPath",
+                    Setting_Draw = true,
+                    Setting_DrawText = true,
+                    Setting_Size = 32,
+                    Setting_Index = 1,
+                    Setting_Tint = new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
+                    Setting_HiddenTint = new Vector4(1.0f, 0.6862745f, 0.6862745f, 1.0f),
+                },
+            };
+        }
+        public void NewCustomIconSettings() {
+            var defaultSetting = new CustomIconSettings {
+                Path = "Metadata/CustomPath/",
+                Setting_Draw = true,
+                Setting_DrawText = false,
+                Setting_Size = 32,
+                Setting_Index = 0,
+                Setting_Tint = new Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+                Setting_HiddenTint = new Vector4(0.5f, 0.5f, 0.5f, 1.0f)
+            };
+            CustomIconSettingsList.Add(defaultSetting);
+        }
+        public void RemoveCustomIconSettings(int index) {
+            if (index >= 0 && index < CustomIconSettingsList.Count) {
+                CustomIconSettingsList.RemoveAt(index);
+            }
+        }
 
-    public bool RareMonsterDraw = true;
-    public int RareMonsterSize = 32;
-    public int RareMonsterIconIndex = 2;
-    public Vector4 RareMonsterTint = new(1.0f, 0.8235294f, 0.0f, 1.0f);
-    public Vector4 RareMonsterHiddenTint = new(1.0f, 0.9515571f, 0.7254902f, 1.0f);
+    #endregion--------------------------------------------------------------------------------------
 
-    public bool UniqueMonsterDraw = true;
-    public int UniqueMonsterSize = 32;
-    public int UniqueMonsterIconIndex = 3;
-    public Vector4 UniqueMonsterTint = new(1.0f, 0.44155842f, 0.0f, 1.0f);
-    public Vector4 UniqueMonsterHiddenTint = new(1.0f, 0.82652825f, 0.6862745f, 1.0f);
+    #region --| Npc Settings |----------------------------------------------------------------------
 
-    public bool SpiritDraw = true;
-    public int SpiritSize = 32;
-    public int SpiritIconIndex = 3;
-    public Vector4 SpiritTint = new Vector4(0.8311689f, 1.0f, 0.0f, 1.0f);
-    public Vector4 SpiritHiddenTint = new Vector4(0.9474408f, 1.0f, 0.6883117f, 1.0f);
+        public bool WhiteMonster_Draw = true;
+        public bool WhiteMonster_DrawText = false;
+        public int WhiteMonster_Size = 32;
+        public int WhiteMonster_Index = 0;
+        public Vector4 WhiteMonster_Tint = new(1.0f, 0.0f, 0.0f, 1.0f);
+        public Vector4 WhiteMonster_HiddenTint = new(1.0f, 0.7254902f, 0.7254902f, 1.0f);
 
-    public bool FracturingMirrorDraw = true;
-    public int FracturingMirrorSize = 32;
-    public int FracturingMirrorIconIndex = 129;
-    public Vector4 FracturingMirrorTint = new Vector4(0.0f, 0.9411764f, 1.0f, 1.0f);
-    public Vector4 FracturingMirrorHiddenTint = new Vector4(0.0f, 0.9411765f, 1.0f, 1.0f);
+        public bool MagicMonster_Draw = true;
+        public bool MagicMonster_DrawText = false;
+        public int MagicMonster_Size = 32;
+        public int MagicMonster_Index = 1;
+        public Vector4 MagicMonster_Tint = new(0.0f, 0.57254905f, 1.0f, 1.0f);
+        public Vector4 MagicMonster_HiddenTint = new(0.7254902f, 0.88050747f, 1.0f, 1.0f);
 
-    public bool MinionDraw = true;
-    public int MinionSize = 32;
-    public int MinionIconIndex = 0;
-    public Vector4 MinionTint = new(0.0f, 1.0f, 0.0f, 1.0f);
-    public Vector4 MinionHiddenTint = new(0.6862745f, 1.0f, 0.6862745f, 1.0f);
+        public bool RareMonster_Draw = true;
+        public bool RareMonster_DrawText = false;
+        public int RareMonster_Size = 32;
+        public int RareMonster_Index = 2;
+        public Vector4 RareMonster_Tint = new(1.0f, 0.8235294f, 0.0f, 1.0f);
+        public Vector4 RareMonster_HiddenTint = new(1.0f, 0.9515571f, 0.7254902f, 1.0f);
 
-    public bool NPCDraw = true;
-    public int NPCSize = 32;
-    public int NPCIconIndex = 161;
-    public Vector4 NPCTint = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-    public Vector4 NPCHiddenTint = new Vector4(0.6862745f, 1.0f, 0.6862745f, 1.0f);
-    public bool NPCTextShow = false;
+        public bool UniqueMonster_Draw = true;
+        public bool UniqueMonster_DrawText = false;
+        public int UniqueMonster_Size = 32;
+        public int UniqueMonster_Index = 3;
+        public Vector4 UniqueMonster_Tint = new(1.0f, 0.44155842f, 0.0f, 1.0f);
+        public Vector4 UniqueMonster_HiddenTint = new(1.0f, 0.82652825f, 0.6862745f, 1.0f);        
+        
+        public bool Spirit_Draw = true;
+        public bool Spirit_DrawText = false;
+        public int Spirit_Size = 32;
+        public int Spirit_Index = 3;
+        public Vector4 Spirit_Tint = new(0.8311689f, 1.0f, 0.0f, 1.0f);
+        public Vector4 Spirit_HiddenTint = new(0.9474408f, 1.0f, 0.6883117f, 1.0f);
 
-    public bool VolatileDraw = true;
-    public int VolatileSize = 32;
-    public int VolatileIconIndex = 18;
-    public Vector4 VolatileTint = new Vector4(1.0f, 0.0f, 0.38961077f, 1.0f);
-    public Vector4 VolatileHiddenTint = new Vector4(1.0f, 0.6862745f, 0.8043829f, 1.0f);
+        public bool FracturingMirror_Draw = true;
+        public bool FracturingMirror_DrawText = false;
+        public int FracturingMirror_Size = 32;
+        public int FracturingMirror_Index = 129;
+        public Vector4 FracturingMirror_Tint = new Vector4(0.0f, 0.9411764f, 1.0f, 1.0f);
+        public Vector4 FracturingMirror_HiddenTint = new Vector4(0.0f, 0.9411765f, 1.0f, 1.0f);
+
+        public bool Minion_Draw = true;
+        public bool Minion_DrawText = false;
+        public int Minion_Size = 32;
+        public int Minion_Index = 0;
+        public Vector4 Minion_Tint = new(0.0f, 1.0f, 0.0f, 1.0f);
+        public Vector4 Minion_HiddenTint = new(0.6862745f, 1.0f, 0.6862745f, 1.0f);
+
+        public bool NPC_Draw = true;
+        public bool NPC_DrawText = false;
+        public int NPC_Size = 32;
+        public int NPC_Index = 161;
+        public Vector4 NPC_Tint = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+        public Vector4 NPC_HiddenTint = new Vector4(0.6862745f, 1.0f, 0.6862745f, 1.0f);
+
+        public bool VolatileCore_Draw = true;
+        public bool VolatileCore_DrawText = false;
+        public int VolatileCore_Size = 32;
+        public int VolatileCore_Index = 18;
+        public Vector4 VolatileCore_Tint = new Vector4(1.0f, 0.0f, 0.38961077f, 1.0f);
+        public Vector4 VolatileCore_HiddenTint = new Vector4(1.0f, 0.6862745f, 0.8043829f, 1.0f);
+
+    #endregion
 
     // misc icons
-    public bool PlayerDraw = true;
-    public int PlayerSize = 32;
-    public int PlayerIconIndex = 17;
-    public Vector4 PlayerTint = new(0.0f, 1.0f, 0.0f, 1.0f);
-    public Vector4 PlayerHiddenTint = new( 0.6862745f, 1.0f, 0.6862745f, 1.0f );
-    public bool PlayerTextShow = false;
+    public bool Player_Draw = true;
+    public int Player_Size = 32;
+    public int Player_Index = 17;
+    public Vector4 Player_Tint = new(0.0f, 1.0f, 0.0f, 1.0f);
+    public Vector4 Player_HiddenTint = new( 0.6862745f, 1.0f, 0.6862745f, 1.0f );
+    public bool Player_DrawText = false;
 
-    // breach chests
-    public bool BreachChestNormalDraw = true;
-    public int BreachChestNormalSize = 32;
-    public int BreachChestNormalIconIndex = 129;
-    public Vector4 BreachChestNormalTint = new(0.67532444f, 0.0f, 1.0f, 1.0f);
+    public bool SanctumMote_Draw = true;
+    public bool SanctumMote_DrawText = false;
+    public int SanctumMote_Size = 32;
+    public int SanctumMote_Index = 0;
+    public Vector4 SanctumMote_Tint = new(0.49783552f, 0.95434874f, 1.0f, 1.0f);
+    public Vector4 SanctumMote_HiddenTint = new(0.83116883f, 0.98417217f, 1.0f, 1.0f);
 
-    public bool BreachChestBossDraw = true;
-    public int BreachChestBossSize = 32;
-    public int BreachChestBossIconIndex = 130;
-    public Vector4 BreachChestBossTint = new(0.96862745f, 0.0f, 0.93088883f, 1.0f);
+    #region --| Chest Settings |--------------------------------------------------------------------
 
-    //expedition chests
-    public bool ExpeditionNormalChestDraw = true;
-    public int ExpeditionNormalChestSize = 32;
-    public int ExpeditionNormalChestIconIndex = 241;
-    public Vector4 ExpeditionNormalChestTint = new(1.0f, 1.0f, 1.0f, 1.0f);
+    public bool NormalChest_Draw = false;
+        public bool NormalChest_DrawText = false;
+        public int NormalChest_Size = 32;
+        public int NormalChest_Index = 240;
+        public Vector4 NormalChest_Tint = new(1.0f, 1.0f, 1.0f, 1.0f);
 
-    public bool ExpeditionMagicChestDraw = true;
-    public int ExpeditionMagicChestSize = 32;
-    public int ExpeditionMagicChestIconIndex = 241;
-    public Vector4 ExpeditionMagicChestTint = new(0.0f, 0.57254905f, 1.0f, 1.0f);
+        public bool MagicChest_Draw = false;
+        public bool MagicChest_DrawText = false;
+        public int MagicChest_Size = 32;
+        public int MagicChest_Index = 241;
+        public Vector4 MagicChest_Tint = new(0.0f, 0.57254905f, 1.0f, 1.0f);
 
-    public bool ExpeditionRareChestDraw = true;
-    public int ExpeditionRareChestSize = 32;
-    public int ExpeditionRareChestIconIndex = 241;
-    public Vector4 ExpeditionRareChestTint = new(1.0f, 0.8235294f, 0.0f, 1.0f);
+        public bool RareChest_Draw = true;
+        public bool RareChest_DrawText = false;
+        public int RareChest_Size = 32;
+        public int RareChest_Index = 241;
+        public Vector4 RareChest_Tint = new(1.0f, 0.8235294f, 0.0f, 1.0f);
 
-    // chests
-    public bool NormalChestDraw = false;
-    public int NormalChestSize = 32;
-    public int NormalChestIconIndex = 240;
-    public Vector4 NormalChestTint = new(1.0f, 1.0f, 1.0f, 1.0f);
+        public bool UniqueChest_Draw = true;
+        public bool UniqueChest_DrawText = false;
+        public int UniqueChest_Size = 32;
+        public int UniqueChest_Index = 241;
+        public Vector4 UniqueChest_Tint = new(1.0f, 0.82652825f, 0.6862745f, 1.0f);
 
-    public bool MagicChestDraw = false;
-    public int MagicChestSize = 32;
-    public int MagicChestIconIndex = 241;
-    public Vector4 MagicChestTint = new(0.0f, 0.57254905f, 1.0f, 1.0f);
+        //expedition chests
+        public bool ExpeditionNormalChest_Draw = true;
+        public bool ExpeditionNormalChest_DrawText = false;
+        public int ExpeditionNormalChest_Size = 32;
+        public int ExpeditionNormalChest_Index = 241;
+        public Vector4 ExpeditionNormalChest_Tint = new(1.0f, 1.0f, 1.0f, 1.0f);
 
-    public bool RareChestDraw = true;
-    public int RareChestSize = 32;
-    public int RareChestIconIndex = 241;
-    public Vector4 RareChestTint = new(1.0f, 0.8235294f, 0.0f, 1.0f);
+        public bool ExpeditionMagicChest_Draw = true;
+        public bool ExpeditionMagicChest_DrawText = false;
+        public int ExpeditionMagicChest_Size = 32;
+        public int ExpeditionMagicChest_Index = 241;
+        public Vector4 ExpeditionMagicChest_Tint = new(0.0f, 0.57254905f, 1.0f, 1.0f);
 
-    // strongboxes
+        public bool ExpeditionRareChest_Draw = true;
+        public bool ExpeditionRareChest_DrawText = false;
+        public int ExpeditionRareChest_Size = 32;
+        public int ExpeditionRareChest_Index = 241;
+        public Vector4 ExpeditionRareChest_Tint = new(1.0f, 0.8235294f, 0.0f, 1.0f);
 
-    public bool UnknownStrongboxDraw = true;
-    public int UnknownStrongboxSize = 32;
-    public int UnknownStrongboxIconIndex = 241;
-    public Vector4 UnknownStrongboxTint = new(1.0f, 0.0f, 0.80519485f, 1.0f);
+        // breach chests
+        public bool BreachChest_Draw = true;
+        public bool BreachChest_DrawText = false;
+        public int BreachChest_Size = 32;
+        public int BreachChest_Index = 129;
+        public Vector4 BreachChest_Tint = new(0.67532444f, 0.0f, 1.0f, 1.0f);
 
-    public bool ArcanistStrongboxDraw = true;
-    public int ArcanistStrongboxSize = 32;
-    public int ArcanistStrongboxIconIndex = 241;
-    public Vector4 ArcanistStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool BreachChestBoss_Draw = true;
+        public bool BreachChestBoss_DrawText = false;
+        public int BreachChestBoss_Size = 32;
+        public int BreachChestBoss_Index = 130;
+        public Vector4 BreachChestBoss_Tint = new(0.96862745f, 0.0f, 0.93088883f, 1.0f);
 
-    public bool ArmourerStrongboxDraw = true;
-    public int ArmourerStrongboxSize = 32;
-    public int ArmourerStrongboxIconIndex = 241;
-    public Vector4 ArmourerStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        // sanctum chests
+        public bool SanctumChest_Draw = true;
+        public bool SanctumChest_DrawText = false;
+        public int SanctumChest_Size = 32;
+        public int SanctumChest_Index = 241;
+        public Vector4 SanctumChest_Tint = new(1.0f, 0.0f, 0.0f, 1.0f);
 
-    public bool BlacksmithStrongboxDraw = true;
-    public int BlacksmithStrongboxSize = 32;
-    public int BlacksmithStrongboxIconIndex = 241;
-    public Vector4 BlacksmithStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+    #endregion
 
-    public bool ArtisanStrongboxDraw = true;
-    public int ArtisanStrongboxSize = 32;
-    public int ArtisanStrongboxIconIndex = 241;
-    public Vector4 ArtisanStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+    #region --| Strongbox Settings |--------------------------------------------------------------
 
-    public bool CartographerStrongboxDraw = true;
-    public int CartographerStrongboxSize = 32;
-    public int CartographerStrongboxIconIndex = 241;
-    public Vector4 CartographerStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool UnknownStrongbox_Draw = true;
+        public bool UnknownStrongbox_DrawText = false;   
+        public int UnknownStrongbox_Size = 32;
+        public int UnknownStrongbox_Index = 241;
+        public Vector4 UnknownStrongbox_Tint = new(1.0f, 0.0f, 0.80519485f, 1.0f);
 
-    public bool ChemistStrongboxDraw = true;
-    public int ChemistStrongboxSize = 32;
-    public int ChemistStrongboxIconIndex = 241;
-    public Vector4 ChemistStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool ArcanistStrongbox_Draw = true;
+        public bool ArcanistStrongbox_DrawText = false;
+        public int ArcanistStrongbox_Size = 32;
+        public int ArcanistStrongbox_Index = 241;
+        public Vector4 ArcanistStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool GemcutterStrongboxDraw = true;
-    public int GemcutterStrongboxSize = 32;
-    public int GemcutterStrongboxIconIndex = 241;
-    public Vector4 GemcutterStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool ArmourerStrongbox_Draw = true;
+        public bool ArmourerStrongbox_DrawText = false;
+        public int ArmourerStrongbox_Size = 32;
+        public int ArmourerStrongbox_Index = 241;
+        public Vector4 ArmourerStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool JewellerStrongboxDraw = true;
-    public int JewellerStrongboxSize = 32;
-    public int JewellerStrongboxIconIndex = 241;
-    public Vector4 JewellerStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool BlacksmithStrongbox_Draw = true;
+        public bool BlacksmithStrongbox_DrawText = false;
+        public int BlacksmithStrongbox_Size = 32;
+        public int BlacksmithStrongbox_Index = 241;
+        public Vector4 BlacksmithStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool LargeStrongboxDraw = true;
-    public int LargeStrongboxSize = 32;
-    public int LargeStrongboxIconIndex = 241;
-    public Vector4 LargeStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool ArtisanStrongbox_Draw = true;
+        public bool ArtisanStrongbox_DrawText = false;
+        public int ArtisanStrongbox_Size = 32;
+        public int ArtisanStrongbox_Index = 241;
+        public Vector4 ArtisanStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool OrnateStrongboxDraw = true;
-    public int OrnateStrongboxSize = 32;
-    public int OrnateStrongboxIconIndex = 241;
-    public Vector4 OrnateStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool CartographerStrongbox_Draw = true;
+        public bool CartographerStrongbox_DrawText = false;
+        public int CartographerStrongbox_Size = 32;
+        public int CartographerStrongbox_Index = 241;
+        public Vector4 CartographerStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool StrongboxDraw = true;
-    public int StrongboxSize = 32;
-    public int StrongboxIconIndex = 241;
-    public Vector4 StrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool ChemistStrongbox_Draw = true;
+        public bool ChemistStrongbox_DrawText = false;
+        public int ChemistStrongbox_Size = 32;
+        public int ChemistStrongbox_Index = 241;
+        public Vector4 ChemistStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool DivinerStrongboxDraw = true;
-    public int DivinerStrongboxSize = 32;
-    public int DivinerStrongboxIconIndex = 241;
-    public Vector4 DivinerStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool GemcutterStrongbox_Draw = true; 
+        public bool GemcutterStrongbox_DrawText = false;
+        public int GemcutterStrongbox_Size = 32;
+        public int GemcutterStrongbox_Index = 241;
+        public Vector4 GemcutterStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool OperativeStrongboxDraw = true;
-    public int OperativeStrongboxSize = 32;
-    public int OperativeStrongboxIconIndex = 241;
-    public Vector4 OperativeStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool JewellerStrongbox_Draw = true;
+        public bool JewellerStrongbox_DrawText = false;
+        public int JewellerStrongbox_Size = 32;
+        public int JewellerStrongbox_Index = 241;
+        public Vector4 JewellerStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool ArcaneStrongboxDraw = true;
-    public int ArcaneStrongboxSize = 32;
-    public int ArcaneStrongboxIconIndex = 241;
-    public Vector4 ArcaneStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool LargeStrongbox_Draw = true;
+        public bool LargeStrongbox_DrawText = false;
+        public int LargeStrongbox_Size = 32;
+        public int LargeStrongbox_Index = 241;
+        public Vector4 LargeStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
-    public bool ResearcherStrongboxDraw = true;
-    public int ResearcherStrongboxSize = 32;
-    public int ResearcherStrongboxIconIndex = 241;
-    public Vector4 ResearcherStrongboxTint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+        public bool OrnateStrongbox_Draw = true;
+        public bool OrnateStrongbox_DrawText = false;
+        public int OrnateStrongbox_Size = 32;
+        public int OrnateStrongbox_Index = 241;
+        public Vector4 OrnateStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
 
+        public bool Strongbox_Draw = true;
+        public bool Strongbox_DrawText = false;
+        public int Strongbox_Size = 32;
+        public int Strongbox_Index = 241;
+        public Vector4 Strongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+
+        public bool DivinerStrongbox_Draw = true;
+        public bool DivinerStrongbox_DrawText = false;
+        public int DivinerStrongbox_Size = 32;
+        public int DivinerStrongbox_Index = 241;
+        public Vector4 DivinerStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+
+        public bool OperativeStrongbox_Draw = true;
+        public bool OperativeStrongbox_DrawText = false;
+        public int OperativeStrongbox_Size = 32;
+        public int OperativeStrongbox_Index = 241;
+        public Vector4 OperativeStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+
+        public bool ArcaneStrongbox_Draw = true;
+        public bool ArcaneStrongbox_DrawText = false;
+        public int ArcaneStrongbox_Size = 32;
+        public int ArcaneStrongbox_Index = 241;
+        public Vector4 ArcaneStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+
+        public bool ResearcherStrongbox_Draw = true;
+        public bool ResearcherStrongbox_DrawText = false;
+        public int ResearcherStrongbox_Size = 32;
+        public int ResearcherStrongbox_Index = 241;
+        public Vector4 ResearcherStrongbox_Tint = new(1.0f, 0.4705882f, 0.0f, 1.0f);
+
+    #endregion
+    
     //ignored entities
     public string ignoredEntities =
     @"# Random Ignores

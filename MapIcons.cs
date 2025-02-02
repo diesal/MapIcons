@@ -9,6 +9,7 @@ using ExileCore2.Shared.Helpers;
 using ImGuiNET;
 using MapIcons.Icons;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace MapIcons;
 
@@ -33,6 +34,8 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
     //--| Initialise |--------------------------------------------------------------------------------------------------
     public override bool Initialise() {
         CanUseMultiThreading = true;
+
+        Settings.InitCustomIconSettings();
 
         Log.SetCustomHeaderControls(AddLogHeaderControls);
         IconBuilder.Initialise();
@@ -69,6 +72,27 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGui.PopItemWidth();
     }
 
+    private string[] debugIconStates = { "Off", "All", "Valid", "Invalid" };
+    private bool DebugIconComboBox(string label, ref int selectedItem) {
+        bool itemChanged = false;
+        ImGui.PushItemWidth(80);
+        if (ImGui.BeginCombo(label, debugIconStates[selectedItem])) {
+            for (int i = 0; i < debugIconStates.Length; i++) {
+                bool isSelected = (selectedItem == i);
+                if (ImGui.Selectable(debugIconStates[i], isSelected)) {
+                    selectedItem = i;
+                    itemChanged = true;
+                }
+                if (isSelected) {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+            ImGui.EndCombo();
+        }
+        ImGui.PopItemWidth();
+        return itemChanged;
+    }
+
     private string[] ingameIconStates = { "Off", "Ranged", "Always" };
     private bool IngameIconComboBox(string label, ref int selectedItem) {
         bool itemChanged = false;
@@ -89,276 +113,313 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGui.PopItemWidth();
         return itemChanged;
     }
+    private void DrawCustomIconPathSettings() {       
+
+        for (int i = 0; i < Settings.CustomIconSettingsList.Count; i++) {
+            var setting = Settings.CustomIconSettingsList[i];
+
+            ImGuiUtils.Checkbox($"##CustomPath{i}", "Draw Custom Path", ref setting.Setting_Draw); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"Icon Tint ##CustomPath{i}", ref setting.Setting_Tint); ImGui.SameLine();
+            ImGuiUtils.ColorSwatch($"Hidden Icon Tint ##CustomPath{i}", ref setting.Setting_HiddenTint); ImGui.SameLine();
+            IconButton($"Custom Path Icon {i}", "Icon", ref setting.Setting_Index, setting.Setting_Tint); ImGui.SameLine();
+            IconSizeSliderInt($"##CustomPath{i}", ref setting.Setting_Size, 0, 32); ImGui.SameLine();
+
+            float inputTextWidth = ImGui.GetContentRegionAvail().X - ImGui.CalcTextSize("Remove").X - ImGui.GetStyle().ItemSpacing.X;
+            ImGui.SetNextItemWidth(inputTextWidth);
+            ImGui.InputText($"##Path{i}", ref setting.Path, 100); ImGui.SameLine();
+            ImGui.PopItemWidth();
+            if (ImGui.Button($"Remove##Path{i}")) Settings.RemoveCustomIconSettings(i);
+        }
+
+        if (ImGui.Button("Add Icon")) Settings.NewCustomIconSettings(); ImGui.SameLine();
+        if (ImGui.Button("Rebuild Icons")) IconBuilder.RebuildIcons(); 
+    }
     private void DrawNpcIconSettings() {
         // Vector4 childBgColor = ImGui.ColorConvertU32ToFloat4(ImGui.GetColorU32(ImGuiCol.ChildBg));
 
         // normal monsters 
-        ImGuiUtils.Checkbox("##NormalMonsters", "Draw Normal Monsters", ref Settings.NormalMonsterDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Normal", ref Settings.NormalMonsterTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Normal", ref Settings.NormalMonsterHiddenTint); ImGui.SameLine();
-        IconButton("Normal Monster Icon", "Icon", ref Settings.NormalMonsterIconIndex, Settings.NormalMonsterTint); ImGui.SameLine();
-        IconSizeSliderInt("##NormalMonsters", ref Settings.NormalMonsterSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##NormalMonsters", "Draw Normal Monsters", ref Settings.WhiteMonster_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Normal", ref Settings.WhiteMonster_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Normal", ref Settings.WhiteMonster_HiddenTint); ImGui.SameLine();
+        IconButton("Normal Monster Icon", "Icon", ref Settings.WhiteMonster_Index, Settings.WhiteMonster_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##NormalMonsters", ref Settings.WhiteMonster_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Normal Monster");
 
         // magic monsters
-        ImGuiUtils.Checkbox("##MagicMonsters", "Draw Magic Monsters", ref Settings.MagicMonsterDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Magic", ref Settings.MagicMonsterTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Magic", ref Settings.MagicMonsterHiddenTint); ImGui.SameLine();
-        IconButton("Magic Monster Icon", "Icon", ref Settings.MagicMonsterIconIndex, Settings.MagicMonsterTint); ImGui.SameLine();
-        IconSizeSliderInt("##MagicMonsters", ref Settings.MagicMonsterSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##MagicMonsters", "Draw Magic Monsters", ref Settings.MagicMonster_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Magic", ref Settings.MagicMonster_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Magic", ref Settings.MagicMonster_HiddenTint); ImGui.SameLine();
+        IconButton("Magic Monster Icon", "Icon", ref Settings.MagicMonster_Index, Settings.MagicMonster_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##MagicMonsters", ref Settings.MagicMonster_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Magic Monster");
 
         // rare monsters
-        ImGuiUtils.Checkbox("##RareMonsters", "Draw Rare Monsters", ref Settings.RareMonsterDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Rare", ref Settings.RareMonsterTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Rare", ref Settings.RareMonsterHiddenTint); ImGui.SameLine();
-        IconButton("Rare Monster Icon", "Icon", ref Settings.RareMonsterIconIndex, Settings.RareMonsterTint); ImGui.SameLine();
-        IconSizeSliderInt("##RareMonsters", ref Settings.RareMonsterSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##RareMonsters", "Draw Rare Monsters", ref Settings.RareMonster_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Rare", ref Settings.RareMonster_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Rare", ref Settings.RareMonster_HiddenTint); ImGui.SameLine();
+        IconButton("Rare Monster Icon", "Icon", ref Settings.RareMonster_Index, Settings.RareMonster_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##RareMonsters", ref Settings.RareMonster_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Rare Monster");
 
         // unique monsters
-        ImGuiUtils.Checkbox("##UniqueMonsters", "Draw Unique Monsters", ref Settings.UniqueMonsterDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Unique", ref Settings.UniqueMonsterTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Unique", ref Settings.UniqueMonsterHiddenTint); ImGui.SameLine();
-        IconButton("Unique Monster Icon", "Icon", ref Settings.UniqueMonsterIconIndex, Settings.UniqueMonsterTint); ImGui.SameLine();
-        IconSizeSliderInt("##UniqueMonsters", ref Settings.UniqueMonsterSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##UniqueMonsters", "Draw Unique Monsters", ref Settings.UniqueMonster_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Unique", ref Settings.UniqueMonster_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Unique", ref Settings.UniqueMonster_HiddenTint); ImGui.SameLine();
+        IconButton("Unique Monster Icon", "Icon", ref Settings.UniqueMonster_Index, Settings.UniqueMonster_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##UniqueMonsters", ref Settings.UniqueMonster_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Unique Monster");
 
         // spirits
-        ImGuiUtils.Checkbox("##Spirits", "Draw Spirits", ref Settings.SpiritDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Spirits", ref Settings.SpiritTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Spirits", ref Settings.SpiritHiddenTint); ImGui.SameLine();
-        IconButton("Spirit Icon", "Icon", ref Settings.SpiritIconIndex, Settings.SpiritTint); ImGui.SameLine();
-        IconSizeSliderInt("##Spirits", ref Settings.SpiritSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##Spirits", "Draw Spirits", ref Settings.Spirit_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Spirits", ref Settings.Spirit_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Spirits", ref Settings.Spirit_HiddenTint); ImGui.SameLine();
+        IconButton("Spirit Icon", "Icon", ref Settings.Spirit_Index, Settings.Spirit_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##Spirits", ref Settings.Spirit_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Spirit");
 
         // volatile cores
-        ImGuiUtils.Checkbox("##VolatileCores", "Draw Volatile Cores", ref Settings.VolatileDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##VolatileCores", ref Settings.VolatileTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##VolatileCores", ref Settings.VolatileHiddenTint); ImGui.SameLine();
-        IconButton("Volatile Core Icon", "Icon", ref Settings.VolatileIconIndex, Settings.VolatileTint); ImGui.SameLine();
-        IconSizeSliderInt("##VolatileCores", ref Settings.VolatileSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##VolatileCores", "Draw Volatile Cores", ref Settings.VolatileCore_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##VolatileCores", ref Settings.VolatileCore_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##VolatileCores", ref Settings.VolatileCore_HiddenTint); ImGui.SameLine();
+        IconButton("Volatile Core Icon", "Icon", ref Settings.VolatileCore_Index, Settings.VolatileCore_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##VolatileCores", ref Settings.VolatileCore_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Volatile Core");
 
         // fracturing mirrors
-        ImGuiUtils.Checkbox("##FracturingMirrors", "Draw Fracturing Mirrors", ref Settings.FracturingMirrorDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##FracturingMirrors", ref Settings.FracturingMirrorTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##FracturingMirrors", ref Settings.FracturingMirrorHiddenTint); ImGui.SameLine();
-        IconButton("Fracturing Mirror Icon", "Icon", ref Settings.FracturingMirrorIconIndex, Settings.FracturingMirrorTint); ImGui.SameLine();
-        IconSizeSliderInt("##FracturingMirrors", ref Settings.FracturingMirrorSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##FracturingMirrors", "Draw Fracturing Mirrors", ref Settings.FracturingMirror_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##FracturingMirrors", ref Settings.FracturingMirror_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##FracturingMirrors", ref Settings.FracturingMirror_HiddenTint); ImGui.SameLine();
+        IconButton("Fracturing Mirror Icon", "Icon", ref Settings.FracturingMirror_Index, Settings.FracturingMirror_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##FracturingMirrors", ref Settings.FracturingMirror_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Fracturing Mirror");
 
         // minions
-        ImGuiUtils.Checkbox("##Minions", "Draw Minions", ref Settings.MinionDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Minions", ref Settings.MinionTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Minions", ref Settings.MinionHiddenTint); ImGui.SameLine();
-        IconButton("Minion Icon", "Icon", ref Settings.MinionIconIndex, Settings.MinionTint); ImGui.SameLine();
-        IconSizeSliderInt("##Minions", ref Settings.MinionSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##Minions", "Draw Minions", ref Settings.Minion_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Minions", ref Settings.Minion_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Minions", ref Settings.Minion_HiddenTint); ImGui.SameLine();
+        IconButton("Minion Icon", "Icon", ref Settings.Minion_Index, Settings.Minion_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##Minions", ref Settings.Minion_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Minion");
 
         // NPCs
-        ImGuiUtils.Checkbox("##NPCs", "Draw NPCs", ref Settings.NPCDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##NPCs", ref Settings.NPCTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##NPCs", ref Settings.NPCHiddenTint); ImGui.SameLine();
-        IconButton("NPC Icon", "Icon", ref Settings.NPCIconIndex, Settings.NPCTint); ImGui.SameLine();
-        IconSizeSliderInt("##NPCs", ref Settings.NPCSize, 0, 32); ImGui.SameLine();
-        ImGuiUtils.Checkbox("##NPCText", "Draw NPC Name", ref Settings.NPCTextShow); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##NPCs", "Draw NPCs", ref Settings.NPC_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##NPCs", ref Settings.NPC_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##NPCs", ref Settings.NPC_HiddenTint); ImGui.SameLine();
+        IconButton("NPC Icon", "Icon", ref Settings.NPC_Index, Settings.NPC_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##NPCs", ref Settings.NPC_Size, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##NPCText", "Draw NPC Name", ref Settings.NPC_DrawText); ImGui.SameLine();
         ImGui.Text("NPC");
 
     }
     private void DrawMiscIconSettings() {
-        ImGuiUtils.Checkbox("##Players", "Draw Players", ref Settings.PlayerDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Players", ref Settings.PlayerTint); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Players", ref Settings.NPCHiddenTint); ImGui.SameLine();
-        IconButton("Player Icon", "Icon", ref Settings.PlayerIconIndex, Settings.PlayerTint); ImGui.SameLine();
-        IconSizeSliderInt("##Players", ref Settings.PlayerSize, 0, 32); ImGui.SameLine();
-        ImGuiUtils.Checkbox("##PlayerText", "Draw Player Names", ref Settings.PlayerTextShow); ImGui.SameLine();
+
+        ImGuiUtils.Checkbox("##Players", "Draw Players", ref Settings.Player_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Players", ref Settings.Player_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##Players", ref Settings.NPC_HiddenTint); ImGui.SameLine();
+        IconButton("Player Icon", "Icon", ref Settings.Player_Index, Settings.Player_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##Players", ref Settings.Player_Size, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##PlayerText", "Draw Player Names", ref Settings.Player_DrawText); ImGui.SameLine();
         ImGui.Text("Players");
+
+        ImGuiUtils.Checkbox("##SanctumMote", "Draw Sacred Water", ref Settings.SanctumMote_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##SanctumMote", ref Settings.SanctumMote_Tint); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Hidden Icon Tint ##SanctumMote", ref Settings.SanctumMote_HiddenTint); ImGui.SameLine();
+        IconButton("Sacred Water Icon", "Icon", ref Settings.SanctumMote_Index, Settings.SanctumMote_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##SanctumMote", ref Settings.SanctumMote_Size, 0, 32); ImGui.SameLine();
+        ImGui.Text("Sacred Water");
+
     }
     private void DrawChestSettings() {
 
         // normal chest
-        ImGuiUtils.Checkbox("##NormalChest", "Draw Normal Chest", ref Settings.NormalChestDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##NormalChest", ref Settings.NormalChestTint); ImGui.SameLine();
-        IconButton("Normal Chest Icon", "Icon", ref Settings.NormalChestIconIndex, Settings.NormalChestTint); ImGui.SameLine();
-        IconSizeSliderInt("##NormalChest", ref Settings.NormalChestSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##NormalChest", "Draw Normal Chest", ref Settings.NormalChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##NormalChest", ref Settings.NormalChest_Tint); ImGui.SameLine();
+        IconButton("Normal Chest Icon", "Icon", ref Settings.NormalChest_Index, Settings.NormalChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##NormalChest", ref Settings.NormalChest_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Normal Chest");
 
         // magic chest
-        ImGuiUtils.Checkbox("##MagicChest", "Draw Magic Chest", ref Settings.MagicChestDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##MagicChest", ref Settings.MagicChestTint); ImGui.SameLine();
-        IconButton("Magic Chest Icon", "Icon", ref Settings.MagicChestIconIndex, Settings.MagicChestTint); ImGui.SameLine();
-        IconSizeSliderInt("##MagicChest", ref Settings.MagicChestSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##MagicChest", "Draw Magic Chest", ref Settings.MagicChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##MagicChest", ref Settings.MagicChest_Tint); ImGui.SameLine();
+        IconButton("Magic Chest Icon", "Icon", ref Settings.MagicChest_Index, Settings.MagicChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##MagicChest", ref Settings.MagicChest_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Magic Chest");
 
         // rare chest
-        ImGuiUtils.Checkbox("##RareChest", "Draw Rare Chest", ref Settings.RareChestDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##RareChest", ref Settings.RareChestTint); ImGui.SameLine();
-        IconButton("Rare Chest Icon", "Icon", ref Settings.RareChestIconIndex, Settings.RareChestTint); ImGui.SameLine();
-        IconSizeSliderInt("##RareChest", ref Settings.RareChestSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##RareChest", "Draw Rare Chest", ref Settings.RareChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##RareChest", ref Settings.RareChest_Tint); ImGui.SameLine();
+        IconButton("Rare Chest Icon", "Icon", ref Settings.RareChest_Index, Settings.RareChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##RareChest", ref Settings.RareChest_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Rare Chest");
 
         // Breach Hand
-        ImGuiUtils.Checkbox("##BreachHand", "Draw Breach Hand", ref Settings.BreachChestNormalDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##BreachHand", ref Settings.BreachChestNormalTint); ImGui.SameLine();
-        IconButton("Breach Hand Icon", "Icon", ref Settings.BreachChestNormalIconIndex, Settings.BreachChestNormalTint); ImGui.SameLine();
-        IconSizeSliderInt("##BreachHand", ref Settings.BreachChestNormalSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##BreachHand", "Draw Breach Hand", ref Settings.BreachChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##BreachHand", ref Settings.BreachChest_Tint); ImGui.SameLine();
+        IconButton("Breach Hand Icon", "Icon", ref Settings.BreachChest_Index, Settings.BreachChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##BreachHand", ref Settings.BreachChest_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Breach Hand");
 
         // Breach Boss Hand
-        ImGuiUtils.Checkbox("##BreachBossHand", "Draw Breach Boss Hand", ref Settings.BreachChestBossDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##BreachBossHand", ref Settings.BreachChestBossTint); ImGui.SameLine();
-        IconButton("Breach Boss Hand Icon", "Icon", ref Settings.BreachChestBossIconIndex, Settings.BreachChestBossTint); ImGui.SameLine();
-        IconSizeSliderInt("##BreachBossHand", ref Settings.BreachChestBossSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##BreachBossHand", "Draw Breach Boss Hand", ref Settings.BreachChestBoss_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##BreachBossHand", ref Settings.BreachChestBoss_Tint); ImGui.SameLine();
+        IconButton("Breach Boss Hand Icon", "Icon", ref Settings.BreachChestBoss_Index, Settings.BreachChestBoss_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##BreachBossHand", ref Settings.BreachChestBoss_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Breach Boss Hand");
 
         //expedition chest normal
-        ImGuiUtils.Checkbox("##ExpeditionNormalChest", "Draw Expedition Normal Chest", ref Settings.ExpeditionNormalChestDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ExpeditionNormalChest", ref Settings.ExpeditionNormalChestTint); ImGui.SameLine();
-        IconButton("Expedition Normal Chest Icon", "Icon", ref Settings.ExpeditionNormalChestIconIndex, Settings.ExpeditionNormalChestTint); ImGui.SameLine();
-        IconSizeSliderInt("##ExpeditionNormalChest", ref Settings.ExpeditionNormalChestSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ExpeditionNormalChest", "Draw Expedition Normal Chest", ref Settings.ExpeditionNormalChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ExpeditionNormalChest", ref Settings.ExpeditionNormalChest_Tint); ImGui.SameLine();
+        IconButton("Expedition Normal Chest Icon", "Icon", ref Settings.ExpeditionNormalChest_Index, Settings.ExpeditionNormalChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ExpeditionNormalChest", ref Settings.ExpeditionNormalChest_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Expedition Normal Chest");
 
         //expedition chest magic
-        ImGuiUtils.Checkbox("##ExpeditionMagicChest", "Draw Expedition Magic Chest", ref Settings.ExpeditionMagicChestDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ExpeditionMagicChest", ref Settings.ExpeditionMagicChestTint); ImGui.SameLine();
-        IconButton("Expedition Magic Chest Icon", "Icon", ref Settings.ExpeditionMagicChestIconIndex, Settings.ExpeditionMagicChestTint); ImGui.SameLine();
-        IconSizeSliderInt("##ExpeditionMagicChest", ref Settings.ExpeditionMagicChestSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ExpeditionMagicChest", "Draw Expedition Magic Chest", ref Settings.ExpeditionMagicChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ExpeditionMagicChest", ref Settings.ExpeditionMagicChest_Tint); ImGui.SameLine();
+        IconButton("Expedition Magic Chest Icon", "Icon", ref Settings.ExpeditionMagicChest_Index, Settings.ExpeditionMagicChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ExpeditionMagicChest", ref Settings.ExpeditionMagicChest_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Expedition Magic Chest");
 
         //expedition chest rare
-        ImGuiUtils.Checkbox("##ExpeditionRareChest", "Draw Expedition Rare Chest", ref Settings.ExpeditionRareChestDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ExpeditionRareChest", ref Settings.ExpeditionRareChestTint); ImGui.SameLine();
-        IconButton("Expedition Rare Chest Icon", "Icon", ref Settings.ExpeditionRareChestIconIndex, Settings.ExpeditionRareChestTint); ImGui.SameLine();
-        IconSizeSliderInt("##ExpeditionRareChest", ref Settings.ExpeditionRareChestSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ExpeditionRareChest", "Draw Expedition Rare Chest", ref Settings.ExpeditionRareChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ExpeditionRareChest", ref Settings.ExpeditionRareChest_Tint); ImGui.SameLine();
+        IconButton("Expedition Rare Chest Icon", "Icon", ref Settings.ExpeditionRareChest_Index, Settings.ExpeditionRareChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ExpeditionRareChest", ref Settings.ExpeditionRareChest_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Expedition Rare Chest");
+
+        // snactum chest
+        ImGuiUtils.Checkbox("##SanctumChest", "Draw Sanctum Chest", ref Settings.SanctumChest_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##SanctumChest", ref Settings.SanctumChest_Tint); ImGui.SameLine();
+        IconButton("Sanctum Chest Icon", "Icon", ref Settings.SanctumChest_Index, Settings.SanctumChest_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##SanctumChest", ref Settings.SanctumChest_Size, 0, 32); ImGui.SameLine();
+        ImGui.Text("Sanctum Chest");
 
     }
     private void DrawStrongboxSettings() {
 
-        ImGuiUtils.Checkbox("##UnknownStrongbox", "Draw Unknown Strongbox", ref Settings.UnknownStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##UnknownStrongbox", ref Settings.UnknownStrongboxTint); ImGui.SameLine();
-        IconButton("Unknown Strongbox Icon", "Icon", ref Settings.UnknownStrongboxIconIndex, Settings.UnknownStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##UnknownStrongbox", ref Settings.UnknownStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##UnknownStrongbox", "Draw Unknown Strongbox", ref Settings.UnknownStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##UnknownStrongbox", ref Settings.UnknownStrongbox_Tint); ImGui.SameLine();
+        IconButton("Unknown Strongbox Icon", "Icon", ref Settings.UnknownStrongbox_Index, Settings.UnknownStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##UnknownStrongbox", ref Settings.UnknownStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Unknown Strongbox");
 
-        ImGuiUtils.Checkbox("##ArcanistStrongbox", "Draw Arcanist Strongbox", ref Settings.ArcanistStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ArcanistStrongbox", ref Settings.ArcanistStrongboxTint); ImGui.SameLine();
-        IconButton("Arcanist Strongbox Icon", "Icon", ref Settings.ArcanistStrongboxIconIndex, Settings.ArcanistStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##ArcanistStrongbox", ref Settings.ArcanistStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ArcanistStrongbox", "Draw Arcanist Strongbox", ref Settings.ArcanistStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ArcanistStrongbox", ref Settings.ArcanistStrongbox_Tint); ImGui.SameLine();
+        IconButton("Arcanist Strongbox Icon", "Icon", ref Settings.ArcanistStrongbox_Index, Settings.ArcanistStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ArcanistStrongbox", ref Settings.ArcanistStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Arcanist Strongbox");
 
-        ImGuiUtils.Checkbox("##ArmourerStrongbox", "Draw Armourer Strongbox", ref Settings.ArmourerStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ArmourerStrongbox", ref Settings.ArmourerStrongboxTint); ImGui.SameLine();
-        IconButton("Armourer Strongbox Icon", "Icon", ref Settings.ArmourerStrongboxIconIndex, Settings.ArmourerStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##ArmourerStrongbox", ref Settings.ArmourerStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ArmourerStrongbox", "Draw Armourer Strongbox", ref Settings.ArmourerStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ArmourerStrongbox", ref Settings.ArmourerStrongbox_Tint); ImGui.SameLine();
+        IconButton("Armourer Strongbox Icon", "Icon", ref Settings.ArmourerStrongbox_Index, Settings.ArmourerStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ArmourerStrongbox", ref Settings.ArmourerStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Armourer Strongbox");
 
-        ImGuiUtils.Checkbox("##BlacksmithStrongbox", "Draw Blacksmith Strongbox", ref Settings.BlacksmithStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##BlacksmithStrongbox", ref Settings.BlacksmithStrongboxTint); ImGui.SameLine();
-        IconButton("Blacksmith Strongbox Icon", "Icon", ref Settings.BlacksmithStrongboxIconIndex, Settings.BlacksmithStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##BlacksmithStrongbox", ref Settings.BlacksmithStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##BlacksmithStrongbox", "Draw Blacksmith Strongbox", ref Settings.BlacksmithStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##BlacksmithStrongbox", ref Settings.BlacksmithStrongbox_Tint); ImGui.SameLine();
+        IconButton("Blacksmith Strongbox Icon", "Icon", ref Settings.BlacksmithStrongbox_Index, Settings.BlacksmithStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##BlacksmithStrongbox", ref Settings.BlacksmithStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Blacksmith Strongbox");
 
-        ImGuiUtils.Checkbox("##ArtisanStrongbox", "Draw Artisan Strongbox", ref Settings.ArtisanStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ArtisanStrongbox", ref Settings.ArtisanStrongboxTint); ImGui.SameLine();
-        IconButton("Artisan Strongbox Icon", "Icon", ref Settings.ArtisanStrongboxIconIndex, Settings.ArtisanStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##ArtisanStrongbox", ref Settings.ArtisanStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ArtisanStrongbox", "Draw Artisan Strongbox", ref Settings.ArtisanStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ArtisanStrongbox", ref Settings.ArtisanStrongbox_Tint); ImGui.SameLine();
+        IconButton("Artisan Strongbox Icon", "Icon", ref Settings.ArtisanStrongbox_Index, Settings.ArtisanStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ArtisanStrongbox", ref Settings.ArtisanStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Artisan Strongbox");
 
-        ImGuiUtils.Checkbox("##CartographerStrongbox", "Draw Cartographer Strongbox", ref Settings.CartographerStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##CartographerStrongbox", ref Settings.CartographerStrongboxTint); ImGui.SameLine();
-        IconButton("Cartographer Strongbox Icon", "Icon", ref Settings.CartographerStrongboxIconIndex, Settings.CartographerStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##CartographerStrongbox", ref Settings.CartographerStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##CartographerStrongbox", "Draw Cartographer Strongbox", ref Settings.CartographerStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##CartographerStrongbox", ref Settings.CartographerStrongbox_Tint); ImGui.SameLine();
+        IconButton("Cartographer Strongbox Icon", "Icon", ref Settings.CartographerStrongbox_Index, Settings.CartographerStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##CartographerStrongbox", ref Settings.CartographerStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Cartographer Strongbox");
 
-        ImGuiUtils.Checkbox("##ChemistStrongbox", "Draw Chemist Strongbox", ref Settings.ChemistStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ChemistStrongbox", ref Settings.ChemistStrongboxTint); ImGui.SameLine();
-        IconButton("Chemist Strongbox Icon", "Icon", ref Settings.ChemistStrongboxIconIndex, Settings.ChemistStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##ChemistStrongbox", ref Settings.ChemistStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ChemistStrongbox", "Draw Chemist Strongbox", ref Settings.ChemistStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ChemistStrongbox", ref Settings.ChemistStrongbox_Tint); ImGui.SameLine();
+        IconButton("Chemist Strongbox Icon", "Icon", ref Settings.ChemistStrongbox_Index, Settings.ChemistStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ChemistStrongbox", ref Settings.ChemistStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Chemist Strongbox");
 
-        ImGuiUtils.Checkbox("##GemcutterStrongbox", "Draw Gemcutter Strongbox", ref Settings.GemcutterStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##GemcutterStrongbox", ref Settings.GemcutterStrongboxTint); ImGui.SameLine();
-        IconButton("Gemcutter Strongbox Icon", "Icon", ref Settings.GemcutterStrongboxIconIndex, Settings.GemcutterStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##GemcutterStrongbox", ref Settings.GemcutterStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##GemcutterStrongbox", "Draw Gemcutter Strongbox", ref Settings.GemcutterStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##GemcutterStrongbox", ref Settings.GemcutterStrongbox_Tint); ImGui.SameLine();
+        IconButton("Gemcutter Strongbox Icon", "Icon", ref Settings.GemcutterStrongbox_Index, Settings.GemcutterStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##GemcutterStrongbox", ref Settings.GemcutterStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Gemcutter Strongbox");
 
-        ImGuiUtils.Checkbox("##JewellerStrongbox", "Draw Jeweller Strongbox", ref Settings.JewellerStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##JewellerStrongbox", ref Settings.JewellerStrongboxTint); ImGui.SameLine();
-        IconButton("Jeweller Strongbox Icon", "Icon", ref Settings.JewellerStrongboxIconIndex, Settings.JewellerStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##JewellerStrongbox", ref Settings.JewellerStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##JewellerStrongbox", "Draw Jeweller Strongbox", ref Settings.JewellerStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##JewellerStrongbox", ref Settings.JewellerStrongbox_Tint); ImGui.SameLine();
+        IconButton("Jeweller Strongbox Icon", "Icon", ref Settings.JewellerStrongbox_Index, Settings.JewellerStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##JewellerStrongbox", ref Settings.JewellerStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Jeweller Strongbox");
 
-        ImGuiUtils.Checkbox("##LargeStrongbox", "Draw Large Strongbox", ref Settings.LargeStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##LargeStrongbox", ref Settings.LargeStrongboxTint); ImGui.SameLine();
-        IconButton("Large Strongbox Icon", "Icon", ref Settings.LargeStrongboxIconIndex, Settings.LargeStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##LargeStrongbox", ref Settings.LargeStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##LargeStrongbox", "Draw Large Strongbox", ref Settings.LargeStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##LargeStrongbox", ref Settings.LargeStrongbox_Tint); ImGui.SameLine();
+        IconButton("Large Strongbox Icon", "Icon", ref Settings.LargeStrongbox_Index, Settings.LargeStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##LargeStrongbox", ref Settings.LargeStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Large Strongbox");
 
-        ImGuiUtils.Checkbox("##OrnateStrongbox", "Draw Ornate Strongbox", ref Settings.OrnateStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##OrnateStrongbox", ref Settings.OrnateStrongboxTint); ImGui.SameLine();
-        IconButton("Ornate Strongbox Icon", "Icon", ref Settings.OrnateStrongboxIconIndex, Settings.OrnateStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##OrnateStrongbox", ref Settings.OrnateStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##OrnateStrongbox", "Draw Ornate Strongbox", ref Settings.OrnateStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##OrnateStrongbox", ref Settings.OrnateStrongbox_Tint); ImGui.SameLine();
+        IconButton("Ornate Strongbox Icon", "Icon", ref Settings.OrnateStrongbox_Index, Settings.OrnateStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##OrnateStrongbox", ref Settings.OrnateStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Ornate Strongbox");
 
-        ImGuiUtils.Checkbox("##Strongbox", "Draw Strongbox", ref Settings.StrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##Strongbox", ref Settings.StrongboxTint); ImGui.SameLine();
-        IconButton("Strongbox Icon", "Icon", ref Settings.StrongboxIconIndex, Settings.StrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##Strongbox", ref Settings.StrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##Strongbox", "Draw Strongbox", ref Settings.Strongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##Strongbox", ref Settings.Strongbox_Tint); ImGui.SameLine();
+        IconButton("Strongbox Icon", "Icon", ref Settings.Strongbox_Index, Settings.Strongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##Strongbox", ref Settings.Strongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Strongbox");
 
-        ImGuiUtils.Checkbox("##DivinerStrongbox", "Draw Diviner Strongbox", ref Settings.DivinerStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##DivinerStrongbox", ref Settings.DivinerStrongboxTint); ImGui.SameLine();
-        IconButton("Diviner Strongbox Icon", "Icon", ref Settings.DivinerStrongboxIconIndex, Settings.DivinerStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##DivinerStrongbox", ref Settings.DivinerStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##DivinerStrongbox", "Draw Diviner Strongbox", ref Settings.DivinerStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##DivinerStrongbox", ref Settings.DivinerStrongbox_Tint); ImGui.SameLine();
+        IconButton("Diviner Strongbox Icon", "Icon", ref Settings.DivinerStrongbox_Index, Settings.DivinerStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##DivinerStrongbox", ref Settings.DivinerStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Diviner Strongbox");
 
-        ImGuiUtils.Checkbox("##OperativeStrongbox", "Draw Operative Strongbox", ref Settings.OperativeStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##OperativeStrongbox", ref Settings.OperativeStrongboxTint); ImGui.SameLine();
-        IconButton("Operative Strongbox Icon", "Icon", ref Settings.OperativeStrongboxIconIndex, Settings.OperativeStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##OperativeStrongbox", ref Settings.OperativeStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##OperativeStrongbox", "Draw Operative Strongbox", ref Settings.OperativeStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##OperativeStrongbox", ref Settings.OperativeStrongbox_Tint); ImGui.SameLine();
+        IconButton("Operative Strongbox Icon", "Icon", ref Settings.OperativeStrongbox_Index, Settings.OperativeStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##OperativeStrongbox", ref Settings.OperativeStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Operative Strongbox");
 
-        ImGuiUtils.Checkbox("##ArcaneStrongbox", "Draw Arcane Strongbox", ref Settings.ArcaneStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ArcaneStrongbox", ref Settings.ArcaneStrongboxTint); ImGui.SameLine();
-        IconButton("Arcane Strongbox Icon", "Icon", ref Settings.ArcaneStrongboxIconIndex, Settings.ArcaneStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##ArcaneStrongbox", ref Settings.ArcaneStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ArcaneStrongbox", "Draw Arcane Strongbox", ref Settings.ArcaneStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ArcaneStrongbox", ref Settings.ArcaneStrongbox_Tint); ImGui.SameLine();
+        IconButton("Arcane Strongbox Icon", "Icon", ref Settings.ArcaneStrongbox_Index, Settings.ArcaneStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ArcaneStrongbox", ref Settings.ArcaneStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Arcane Strongbox");
 
-        ImGuiUtils.Checkbox("##ResearcherStrongbox", "Draw Researcher Strongbox", ref Settings.ResearcherStrongboxDraw); ImGui.SameLine();
-        ImGuiUtils.ColorSwatch("Icon Tint ##ResearcherStrongbox", ref Settings.ResearcherStrongboxTint); ImGui.SameLine();
-        IconButton("Researcher Strongbox Icon", "Icon", ref Settings.ResearcherStrongboxIconIndex, Settings.ResearcherStrongboxTint); ImGui.SameLine();
-        IconSizeSliderInt("##ResearcherStrongbox", ref Settings.ResearcherStrongboxSize, 0, 32); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ResearcherStrongbox", "Draw Researcher Strongbox", ref Settings.ResearcherStrongbox_Draw); ImGui.SameLine();
+        ImGuiUtils.ColorSwatch("Icon Tint ##ResearcherStrongbox", ref Settings.ResearcherStrongbox_Tint); ImGui.SameLine();
+        IconButton("Researcher Strongbox Icon", "Icon", ref Settings.ResearcherStrongbox_Index, Settings.ResearcherStrongbox_Tint); ImGui.SameLine();
+        IconSizeSliderInt("##ResearcherStrongbox", ref Settings.ResearcherStrongbox_Size, 0, 32); ImGui.SameLine();
         ImGui.Text("Researcher Strongbox");
     }
     private void DrawIngameIconsSettings() {
-        IngameIconComboBox("##AreaTransition", ref Settings.AreaTransitionState); ImGui.SameLine();
+        IngameIconComboBox("##AreaTransition", ref Settings.AreaTransition_State); ImGui.SameLine();
         ImGui.Text("Area Transition");
 
-        IngameIconComboBox("##Breach", ref Settings.BreachState); ImGui.SameLine();
+        IngameIconComboBox("##Breach", ref Settings.Breach_State); ImGui.SameLine();
         ImGui.Text("Breach");
 
-        IngameIconComboBox("##Checkpoint", ref Settings.CheckpointState); ImGui.SameLine();
+        IngameIconComboBox("##Checkpoint", ref Settings.Checkpoint_State); ImGui.SameLine();
         ImGui.Text("Checkpoint");
 
-        IngameIconComboBox("##QuestObject", ref Settings.QuestObjectState); ImGui.SameLine();
+        IngameIconComboBox("##QuestObject", ref Settings.QuestObject_State); ImGui.SameLine();
         ImGui.Text("Quest Object");
 
-        IngameIconComboBox("##NPC", ref Settings.NPCState); ImGui.SameLine();
+        IngameIconComboBox("##NPC", ref Settings.IngameNPC_State); ImGui.SameLine();
         ImGui.Text("NPC");
 
-        IngameIconComboBox("##Ritual", ref Settings.RitualState); ImGui.SameLine();
+        IngameIconComboBox("##Ritual", ref Settings.Ritual_State); ImGui.SameLine();
         ImGui.Text("Ritual");
 
-        IngameIconComboBox("##Shrine", ref Settings.ShrineState); ImGui.SameLine();
-        ImGuiUtils.Checkbox("##ShrineText","Show Shrine Name", ref Settings.ShrineTextShow); ImGui.SameLine();
+        IngameIconComboBox("##Shrine", ref Settings.Shrine_State); ImGui.SameLine();
+        ImGuiUtils.Checkbox("##ShrineText","Show Shrine Name", ref Settings.Shrine_DrawText); ImGui.SameLine();
         ImGui.Text("Shrine");
 
-        IngameIconComboBox("##Waypoint", ref Settings.WaypointState); ImGui.SameLine();
+        IngameIconComboBox("##Waypoint", ref Settings.Waypoint_State); ImGui.SameLine();
         ImGui.Text("Waypoint");
 
-        IngameIconComboBox("##Uncategorized", ref Settings.UncategorizedState); ImGui.SameLine();
+        IngameIconComboBox("##Uncategorized", ref Settings.IngameUncategorized_State); ImGui.SameLine();
         ImGui.Text("Uncategorized");
     }
     public override void DrawSettings() {
@@ -389,12 +450,17 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
             ImGuiUtils.Checkbox("Draw Over Fullscreen Panels", "Enable drawing over fullscreen panels", ref Settings.DrawOverFullscreenPanels);
             ImGui.Unindent();
         }
-        if (ImGuiUtils.CollapsingHeader("Ignored Entities", ref Settings.IgnoderEntitesOpen)) {
+        if (ImGuiUtils.CollapsingHeader("Ignored Entities", ref Settings.IgnoredEntitesOpen)) {
             ImGui.Indent();
             if (ImGui.Button("Update")) { IconBuilder.UpdateIgnoredEntities(); }
             ImGui.SameLine();
             ImGui.SliderInt("Height", ref Settings.IgnoredEntitiesHeight, 100, 1000);
             ImGui.InputTextMultiline("##ignoredEntitiesInput", ref Settings.ignoredEntities, 1000, new Vector2(ImGui.GetContentRegionAvail().X, Settings.IgnoredEntitiesHeight));
+            ImGui.Unindent();
+        };
+        if (ImGuiUtils.CollapsingHeader("Custom Path Icons", ref Settings.CustomIconsOpen)) {
+            ImGui.Indent();
+            DrawCustomIconPathSettings();
             ImGui.Unindent();
         };
         if (ImGuiUtils.CollapsingHeader("Ingame Icons", ref Settings.RangeIconsOpen)) {
@@ -446,7 +512,9 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         }
     }
     //--| Render |-----------------------------------------------------------------------------------------------------
-        private bool GetIconProperties(MapIcon icon, out string iconFileName, out int iconSize, out System.Drawing.Color iconColor, out RectangleF iconUV, out bool showText) {
+    /*
+
+    private bool GetIconProperties(MapIcon icon, out string iconFileName, out int iconSize, out System.Drawing.Color iconColor, out RectangleF iconUV, out bool showText) {
         iconFileName = null;
         iconSize = 0;
         iconColor = System.Drawing.Color.White;
@@ -719,50 +787,50 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
             iconFileName = ingame_icon.InGameTexture.FileName;
             switch (ingame_icon.IngameIconType) {
                 case IngameIconTypes.AreaTransition:
-                    if (Settings.AreaTransitionState == 0 || (Settings.AreaTransitionState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.AreaTransition_State == 0 || (Settings.AreaTransition_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;
                 case IngameIconTypes.Breach:
-                    if (Settings.BreachState == 0 || (Settings.BreachState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.Breach_State == 0 || (Settings.Breach_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;
                 case IngameIconTypes.Checkpoint: 
-                    if (Settings.CheckpointState == 0 || (Settings.CheckpointState == 1 && ingame_icon.Entity.IsValid)) return false;                    
+                    if (Settings.Checkpoint_State == 0 || (Settings.Checkpoint_State == 1 && ingame_icon.Entity.IsValid)) return false;                    
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;
                 case IngameIconTypes.QuestObject:
-                    if (Settings.QuestObjectState == 0 || (Settings.QuestObjectState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.QuestObject_State == 0 || (Settings.QuestObject_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;
                 case IngameIconTypes.NPC:
-                    if (Settings.NPCState == 0 || (Settings.NPCState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.NPC_State == 0 || (Settings.NPC_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;
                 case IngameIconTypes.Ritual:
-                    if (Settings.RitualState == 0 || (Settings.RitualState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.Ritual_State == 0 || (Settings.Ritual_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     if (ingame_icon.Entity.GetComponent<MinimapIcon>()?.Name == "RitualRuneFinished")
                         iconColor = ImGuiUtils.Vector4ToColor(new Vector4(.8f,.8f,.8f,1));
                     break;
                 case IngameIconTypes.Shrine:
-                    if (Settings.ShrineState == 0 || (Settings.ShrineState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.Shrine_State == 0 || (Settings.Shrine_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
-                    showText = Settings.ShrineTextShow;
+                    showText = Settings.Shrine_DrawText;
                     break;
                 case IngameIconTypes.Waypoint:
-                    if (Settings.WaypointState == 0 || (Settings.WaypointState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.Waypoint_State == 0 || (Settings.Waypoint_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;
                 case IngameIconTypes.Uncategorized:
-                    if (Settings.UncategorizedState == 0 || (Settings.UncategorizedState == 1 && ingame_icon.Entity.IsValid)) return false;
+                    if (Settings.Uncategorized_State == 0 || (Settings.Uncategorized_State == 1 && ingame_icon.Entity.IsValid)) return false;
                     iconSize = (int)ingame_icon.InGameTexture.Size;
                     iconUV = ingame_icon.InGameTexture.UV;
                     break;
@@ -785,6 +853,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         }
         return iconFileName != null && iconSize != 0 && iconUV != new RectangleF();
     }
+    */
     private Vector2 DeltaInWorldToMinimapDelta(Vector2 delta, float deltaZ) {
         return _mapScale * Vector2.Multiply(new Vector2(delta.X - delta.Y, deltaZ - (delta.X + delta.Y)), new Vector2(CameraAngleCos, CameraAngleSin));
     }
@@ -805,11 +874,64 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         if (mapIcons == null) return;
 
         foreach (var icon in mapIcons) {
-
+            if (!icon.IsValid) continue;
             if (icon?.Entity == null) continue;
             if (!icon.Show()) continue;
 
-            if (!GetIconProperties(icon, out var iconFileName, out var iconSize, out var iconColor, out var iconUV, out var showText)) continue;
+            //if (!GetIconProperties(icon, out var iconFileName, out var iconSize, out var iconColor, out var iconUV, out var showText)) continue;
+
+            string iconFileName = null;
+            var iconSize = 0;
+            var iconColor = System.Drawing.Color.White;
+            var iconUV = new RectangleF();
+            var showText = false;
+
+            if (icon.IconRenderType == IconRenderTypes.IngameIcon) {
+                if (icon.Setting_DrawState() == 0 || (icon.Setting_DrawState() == 1 && icon.Entity.IsValid)) continue;
+                iconFileName = icon.InGameTexture.FileName;
+                iconSize = (int)icon.InGameTexture.Size;
+                iconColor = System.Drawing.Color.White;
+                iconUV = icon.InGameTexture.UV;
+                showText = icon.Setting_DrawText();
+            }
+            else if (icon.IconRenderType == IconRenderTypes.Monster) {
+                if (!icon.Setting_Draw()) continue;
+                iconFileName = _iconAtlas.Name;
+                iconSize = icon.Setting_Size();
+                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
+                iconColor = icon.Hidden() ? ImGuiUtils.Vector4ToColor(icon.Setting_HiddenColor()) : ImGuiUtils.Vector4ToColor(icon.Setting_Color());
+                showText = icon.Setting_DrawText();
+            }
+            else if (icon.IconRenderType == IconRenderTypes.Chest) {
+                if (!icon.Setting_Draw()) continue;
+                iconFileName = _iconAtlas.Name;
+                iconSize = icon.Setting_Size();
+                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
+                iconColor = ImGuiUtils.Vector4ToColor(icon.Setting_Color());
+                showText = icon.Setting_DrawText();
+            }
+            else if (icon.IconRenderType == IconRenderTypes.NPC) {
+                if (!icon.Setting_Draw()) continue;
+                iconFileName = _iconAtlas.Name;
+                iconSize = icon.Setting_Size();
+                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
+                iconColor = ImGuiUtils.Vector4ToColor(icon.Setting_Color());
+                showText = icon.Setting_DrawText();
+            }
+            else if (icon.IconRenderType == IconRenderTypes.Player) {
+                if (!icon.Setting_Draw()) continue;
+                iconFileName = _iconAtlas.Name;
+                iconSize = icon.Setting_Size();
+                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
+                iconColor = ImGuiUtils.Vector4ToColor(icon.Setting_Color());
+                showText = icon.Setting_DrawText();
+            }
+            else {
+                continue;
+            }
+
+            if (iconFileName == null) continue;
+
             var iconGridPos = icon.GridPosition();
             var position = _mapCenter + DeltaInWorldToMinimapDelta(iconGridPos - playerPos, (playerHeight + GameController.IngameState.Data.GetTerrainHeightAt(iconGridPos)) * PoeMapExtension.WorldToGridConversion);
 
@@ -838,10 +960,16 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
     }
     private void AddLogHeaderControls() {
         ImGui.SameLine();
-        ImGui.Checkbox("NPC", ref Settings.DebugNPC); ImGui.SameLine();
-        ImGui.Checkbox("Misc", ref Settings.DebugMiscIcons); ImGui.SameLine();
-        ImGui.Checkbox("Chest", ref Settings.DebugChests); ImGui.SameLine();
-        ImGui.Checkbox("Ingame", ref Settings.DebugIngameIcons); ImGui.SameLine();
+        ImGui.Text("NPC:"); ImGui.SameLine();
+        DebugIconComboBox("##DebugNPC", ref Settings.DebugNPCIcon); ImGui.SameLine();
+        ImGui.Text("Chest:"); ImGui.SameLine();
+        DebugIconComboBox("##DebugChest", ref Settings.DebugChestIcon); ImGui.SameLine();
+        ImGui.Text("Ingame:"); ImGui.SameLine();
+        DebugIconComboBox("##DebugIngame", ref Settings.DebugIngameIcon); ImGui.SameLine();
+        ImGui.Text("Misc:"); ImGui.SameLine();
+        DebugIconComboBox("##DebugMisc", ref Settings.DebugMiscIcon); ImGui.SameLine();
+        ImGui.Checkbox("Unhandled Entities", ref Settings.DebugUnhandled); ImGui.SameLine();
+
         if (ImGui.Button("Rebuild Icons")) {
             IconBuilder.RebuildIcons();
         }

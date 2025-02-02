@@ -54,61 +54,9 @@ public sealed class IconBuilder
     private MapIcon CreateIcon(Entity entity) {
         if (SkipIcon(entity)) return null;
         if (SkipPath(entity)) return null;
-        //var metadata = entity.Metadata;
-        //if (Settings.CustomIcons.Content
-        //        .FirstOrDefault(x => _regexes.GetValue(x.MetadataRegex.Value, p => new Regex(p))!.IsMatch(metadata)) is { } customIconConfig) {
-        //    return new CustomIcon(entity, Settings, customIconConfig);
-        //}
 
-        if (entity.Type == EntityType.WorldItem) {
-            //if (Settings.UseReplacementsForItemIconsWhenOutOfRange &&
-            //    entity.TryGetComponent<WorldItem>(out var worldItem) &&
-            //    worldItem.Icon is var icon &&
-            //    icon != MapIconsIndex.None) {
-            //    return new IngameItemReplacerIcon(entity, Settings, icon);
-            //}
-            //else {
-            //    return null;
-            //}
-            return null;
-        }
-
-        //if (entity.Type == EntityType.IngameIcon) {
-            if (entity.TryGetComponent<MinimapIcon>(out var minimapIconComponent) && !minimapIconComponent.IsHide) {
-                var name = minimapIconComponent.Name;
-                if (!string.IsNullOrEmpty(name)) {
-                    return new Ingame_MapIcon(entity, Settings);
-                }
-            }
-        //}
-
-        //NPC
-        if (entity.Type == EntityType.Monster || entity.Type == EntityType.Npc) {
-            if (!entity.IsAlive) return null;
-            return new NPC_MapIcon(entity, Settings);
-        }
-
-        //Chests
-        if (entity.Type == EntityType.Chest && !entity.IsOpened) return new Chest_MapIcon(entity, Settings);
-
-        //Miscellaneous
-        if (entity.Type == EntityType.Player) {
-            if (!entity.IsValid ||
-                _plugin.GameController.IngameState.Data.LocalPlayer.Address == entity.Address ||
-                _plugin.GameController.IngameState.Data.LocalPlayer.GetComponent<Player>().PlayerName == entity.GetComponent<Player>().PlayerName) return null;
-
-            return new Misc_MapIcon(entity, Settings);
-        }
-        else if (entity.HasComponent<MinimapIcon>()) {
-            if (entity.HasComponent<Transitionable>()) {
-                if (entity.Path.StartsWith("Metadata/MiscellaneousObjects/MissionMarker") || entity.GetComponent<MinimapIcon>().Name.Equals("MissionTarget"))
-                    return new Misc_MapIcon(entity, Settings);
-            }
-            else if (entity.HasComponent<Targetable>() || entity.Path is "Metadata/Terrain/Leagues/Sanctum/Objects/SanctumMote")
-               return new Misc_MapIcon(entity, Settings);
-        }    
-
-        return null;
+        var icon = new MapIcon(entity, Settings, _plugin);
+        return icon;
     }
 
 
