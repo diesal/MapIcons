@@ -7,7 +7,6 @@ using ExileCore2.Shared.Cache;
 using ExileCore2.Shared.Enums;
 using ExileCore2.Shared.Helpers;
 using ImGuiNET;
-using MapIcons.Icons;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -123,7 +122,9 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
             ImGuiUtils.ColorSwatch($"Hidden Icon Tint ##CustomPath{i}", ref setting.Setting_HiddenTint); ImGui.SameLine();
             IconButton($"Custom Path Icon {i}", "Icon", ref setting.Setting_Index, setting.Setting_Tint); ImGui.SameLine();
             IconSizeSliderInt($"##CustomPath{i}", ref setting.Setting_Size, 0, 32); ImGui.SameLine();
-
+            ImGuiUtils.Checkbox($"##CustomPathText{i}", "Draw Text", ref setting.Setting_DrawText); ImGui.SameLine();
+            ImGuiUtils.Checkbox($"##CustomPathAlive{i}", "Check if Entity is Alive", ref setting.Setting_IsAlive); ImGui.SameLine();
+            ImGuiUtils.Checkbox($"##CustomPathOpened{i}", "Check if Entity is Opened", ref setting.Setting_IsOpened); ImGui.SameLine();  
             float inputTextWidth = ImGui.GetContentRegionAvail().X - ImGui.CalcTextSize("Remove").X - ImGui.GetStyle().ItemSpacing.X;
             ImGui.SetNextItemWidth(inputTextWidth);
             ImGui.InputText($"##Path{i}", ref setting.Path, 100); ImGui.SameLine();
@@ -449,7 +450,13 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         ImGui.SameLine();
         ImGui.PopItemWidth(); // Reset slider width
         ImGui.Checkbox("Debug", ref Settings.Debug);
-
+        ImGui.Checkbox("Realtime Icon Settings", ref Settings.RealtimeIconSettings);
+        if (ImGui.IsItemHovered()) {
+            ImGui.SetTooltip("When enabled, any changes made to icons through the UI\n"
+                             + "will be immediately reflected in the rendered icons\n"
+                             + "without needing to rebuild.\n"
+                             + "Disable this after setup to improve performance.");
+        }
         if (ImGuiUtils.CollapsingHeader("Draw Settings", ref Settings.DrawSetingsOpen)) {
             ImGui.Indent();
             ImGuiUtils.Checkbox("Draw on Minimap", "Draw Monsters on the minimap", ref Settings.DrawOnMinimap);
@@ -460,7 +467,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         }
         if (ImGuiUtils.CollapsingHeader("Ignored Entities", ref Settings.IgnoredEntitesOpen)) {
             ImGui.Indent();
-            if (ImGui.Button("Update")) { IconBuilder.UpdateIgnoredEntities(); }
+            if (ImGui.Button("Update")) { IconBuilder.UpdateUserSkippedEntities(); }
             ImGui.SameLine();
             ImGui.SliderInt("Height", ref Settings.IgnoredEntitiesHeight, 100, 1000);
             ImGui.InputTextMultiline("##ignoredEntitiesInput", ref Settings.ignoredEntities, 1000, new Vector2(ImGui.GetContentRegionAvail().X, Settings.IgnoredEntitiesHeight));
@@ -882,7 +889,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         if (mapIcons == null) return;
 
         foreach (var icon in mapIcons) {
-            if (!icon.IsValid) continue;
+            //if (!icon.IsValid) continue;
             if (icon?.Entity == null) continue;
             if (!icon.Show()) continue;
 
@@ -894,45 +901,42 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
             var iconUV = new RectangleF();
             var showText = false;
 
+            if (Settings.RealtimeIconSettings) { icon.UpdateSettings();}
+
+            if (icon.Check_IsAlive && !icon.Entity.IsAlive) continue;
+            if (icon.Check_IsOpened && icon.Entity.IsOpened) continue;
+
             if (icon.IconRenderType == IconRenderTypes.IngameIcon) {
-                if (icon.Setting_DrawState() == 0 || (icon.Setting_DrawState() == 1 && icon.Entity.IsValid)) continue;
+                if (icon.DrawState == 0 || (icon.DrawState == 1 && icon.Entity.IsValid)) continue;
                 iconFileName = icon.InGameTexture.FileName;
                 iconSize = (int)icon.InGameTexture.Size;
                 iconColor = System.Drawing.Color.White;
                 iconUV = icon.InGameTexture.UV;
-                showText = icon.Setting_DrawText();
+                showText = icon.DrawText;
             }
             else if (icon.IconRenderType == IconRenderTypes.Monster) {
-                if (!icon.Setting_Draw()) continue;
+                if (!icon.Draw) continue;
                 iconFileName = _iconAtlas.Name;
-                iconSize = icon.Setting_Size();
-                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
-                iconColor = icon.Hidden() ? ImGuiUtils.Vector4ToColor(icon.Setting_HiddenColor()) : ImGuiUtils.Vector4ToColor(icon.Setting_Color());
-                showText = icon.Setting_DrawText();
+                iconSize = icon.Size;
+                iconUV = _iconAtlas.GetIconUV(icon.Index);
+                iconColor = icon.Hidden() ? ImGuiUtils.Vector4ToColor(icon.HiddenTint) : ImGuiUtils.Vector4ToColor(icon.Tint);
+                showText = icon.DrawText;
             }
             else if (icon.IconRenderType == IconRenderTypes.Chest) {
-                if (!icon.Setting_Draw()) continue;
+                if (!icon.Draw) continue;
                 iconFileName = _iconAtlas.Name;
-                iconSize = icon.Setting_Size();
-                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
-                iconColor = ImGuiUtils.Vector4ToColor(icon.Setting_Color());
-                showText = icon.Setting_DrawText();
-            }
-            else if (icon.IconRenderType == IconRenderTypes.NPC) {
-                if (!icon.Setting_Draw()) continue;
-                iconFileName = _iconAtlas.Name;
-                iconSize = icon.Setting_Size();
-                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
-                iconColor = ImGuiUtils.Vector4ToColor(icon.Setting_Color());
-                showText = icon.Setting_DrawText();
+                iconSize = icon.Size;
+                iconUV = _iconAtlas.GetIconUV(icon.Index);
+                iconColor = ImGuiUtils.Vector4ToColor(icon.Tint);
+                showText = icon.DrawText;
             }
             else if (icon.IconRenderType == IconRenderTypes.Player) {
-                if (!icon.Setting_Draw()) continue;
+                if (!icon.Draw) continue;
                 iconFileName = _iconAtlas.Name;
-                iconSize = icon.Setting_Size();
-                iconUV = _iconAtlas.GetIconUV(icon.Setting_Index());
-                iconColor = ImGuiUtils.Vector4ToColor(icon.Setting_Color());
-                showText = icon.Setting_DrawText();
+                iconSize = icon.Size;
+                iconUV = _iconAtlas.GetIconUV(icon.Index);
+                iconColor = ImGuiUtils.Vector4ToColor(icon.Tint);
+                showText = icon.DrawText;
             }
             else {
                 continue;
@@ -968,19 +972,11 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
     }
     private void AddLogHeaderControls() {
         ImGui.SameLine();
-        ImGui.Text("NPC:"); ImGui.SameLine();
-        DebugIconComboBox("##DebugNPC", ref Settings.DebugNPCIcon); ImGui.SameLine();
-        ImGui.Text("Chest:"); ImGui.SameLine();
-        DebugIconComboBox("##DebugChest", ref Settings.DebugChestIcon); ImGui.SameLine();
-        ImGui.Text("Ingame:"); ImGui.SameLine();
-        DebugIconComboBox("##DebugIngame", ref Settings.DebugIngameIcon); ImGui.SameLine();
-        ImGui.Text("Misc:"); ImGui.SameLine();
-        DebugIconComboBox("##DebugMisc", ref Settings.DebugMiscIcon); ImGui.SameLine();
-        ImGui.Checkbox("Unhandled Entities", ref Settings.DebugUnhandled); ImGui.SameLine();
-
-        if (ImGui.Button("Rebuild Icons")) {
-            IconBuilder.RebuildIcons();
-        }
+        ImGui.Checkbox("NPC", ref Settings.DebugNPCIcon); ImGui.SameLine();
+        ImGui.Checkbox("Chest", ref Settings.DebugChestIcon); ImGui.SameLine();
+        ImGui.Checkbox("Ingame", ref Settings.DebugIngameIcon); ImGui.SameLine();
+        ImGui.Checkbox("Misc", ref Settings.DebugMiscIcon); ImGui.SameLine();
+        if (ImGui.Button("Rebuild Icons")) IconBuilder.RebuildIcons();
     }
 
 }

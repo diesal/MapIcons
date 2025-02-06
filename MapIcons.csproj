@@ -19,6 +19,8 @@
     </Content>
   </ItemGroup>
 
+
+
   <ItemGroup>
     <Reference Include="ExileCore2">
       <HintPath>$(exilecore2Package)\ExileCore2.dll</HintPath>

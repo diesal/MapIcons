@@ -13,12 +13,16 @@ public class CustomIconSettings
     public int Setting_Index;
     public Vector4 Setting_Tint;
     public Vector4 Setting_HiddenTint;
+
+    public bool Setting_IsAlive;
+    public bool Setting_IsOpened;
 }
 public sealed class MapIconsSettings : ISettings {
     public ToggleNode Enable { get; set; } = new(true);
 
     public int IconListUpdatePeriod = 100; // milliseconds
     public int RunEveryXTicks = 5;
+    public bool RealtimeIconSettings = false;
 
     public bool DrawOnMinimap = true;
     public bool DrawCachedEntities = true;
@@ -37,11 +41,11 @@ public sealed class MapIconsSettings : ISettings {
 
     //debug
     public bool Debug = false;
-    public bool DebugUnhandled = false;
-    public int DebugIngameIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
-    public int DebugChestIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
-    public int DebugNPCIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
-    public int DebugMiscIcon = 0; // 0 = off | 1 = all | 2 = valid | 3 = invalid
+    public bool DebugMiscIcon = false;
+    public bool DebugIngameIcon = false;
+    public bool DebugChestIcon = false;
+    public bool DebugNPCIcon = false;
+    public bool DebugCustomIcon = false;
 
     //ingame icons
     public int AreaTransition_State = 1;
@@ -70,28 +74,32 @@ public sealed class MapIconsSettings : ISettings {
         public void InitCustomIconSettings() {
             if (true) return;
             if (CustomIconSettingsList.Count > 0) return;
-            var Default_CustomIconSettingsList = new List<CustomIconSettings>{
+            CustomIconSettingsList = new List<CustomIconSettings>{
                 new CustomIconSettings {
-                    Path = "Metadata/Custom/CustomPath",
+                    Path = "custom/path/starts/with",
                     Setting_Draw = true,
                     Setting_DrawText = true,
                     Setting_Size = 32,
                     Setting_Index = 1,
                     Setting_Tint = new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
                     Setting_HiddenTint = new Vector4(1.0f, 0.6862745f, 0.6862745f, 1.0f),
+                    Setting_IsAlive = false,
+                    Setting_IsOpened = false,
                 },
             };
         }
         public void NewCustomIconSettings() {
-            var defaultSetting = new CustomIconSettings {
-                Path = "Metadata/CustomPath/",
-                Setting_Draw = true,
-                Setting_DrawText = false,
-                Setting_Size = 32,
-                Setting_Index = 0,
-                Setting_Tint = new Vector4(1.0f, 1.0f, 1.0f, 1.0f),
-                Setting_HiddenTint = new Vector4(0.5f, 0.5f, 0.5f, 1.0f)
-            };
+        var defaultSetting = new CustomIconSettings {
+            Path = "Metadata/CustomPath/",
+            Setting_Draw = true,
+            Setting_DrawText = false,
+            Setting_Size = 32,
+            Setting_Index = 0,
+            Setting_Tint = new Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+            Setting_HiddenTint = new Vector4(0.5f, 0.5f, 0.5f, 1.0f),
+            Setting_IsAlive = false,
+            Setting_IsOpened = false,
+        };
             CustomIconSettingsList.Add(defaultSetting);
         }
         public void RemoveCustomIconSettings(int index) {
