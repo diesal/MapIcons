@@ -628,11 +628,11 @@ public sealed class IconBuilder
                 icon.IconType = IconTypes.SanctumMote;
                 icon.UpdateSettingsAction = () =>
                 {
-                    icon.Draw = customIconSettings.Setting_Draw;
-                    icon.DrawText = customIconSettings.Setting_DrawText;
-                    icon.Size = customIconSettings.Setting_Size;
-                    icon.Index = customIconSettings.Setting_Index;
-                    icon.Tint = customIconSettings.Setting_Tint;
+                    icon.Draw = Settings.SanctumMote_Draw;
+                    icon.DrawText = Settings.SanctumMote_DrawText;
+                    icon.Size = Settings.SanctumMote_Size;
+                    icon.Index = Settings.SanctumMote_Index;
+                    icon.Tint = Settings.SanctumMote_Tint;
                 };
                 DebugMiscIcon(icon);
                 return icon;
