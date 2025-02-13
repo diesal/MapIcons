@@ -39,7 +39,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         Log.SetCustomHeaderControls(AddLogHeaderControls);
         IconBuilder.Initialise();
         Graphics.InitImage("Icons.png");
-        _iconAtlas = new(Graphics, "MapIcons", Path.Combine(Path.GetDirectoryName(typeof(MapIcons).Assembly.Location), "MapIcons.png"), new Vector2(32, 32));
+        _iconAtlas = new(Graphics, "MapIcons", Path.Combine(DirectoryFullName, "MapIcons.png"), new Vector2(32, 32));
         _iconListCache = CreateIconListCache();
 
         return base.Initialise();
@@ -885,7 +885,7 @@ public class MapIcons : BaseSettingsPlugin<MapIconsSettings>
         var playerPos = playerRender.Pos.WorldToGrid();
         var playerHeight = -playerRender.UnclampedHeight;
 
-        var mapIcons = _iconListCache.Value;
+        var mapIcons = _iconListCache?.Value;
         if (mapIcons == null) return;
 
         foreach (var icon in mapIcons) {
